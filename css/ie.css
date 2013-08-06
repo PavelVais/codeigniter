@@ -1,0 +1,23 @@
+ul.footer-menu{
+	padding: 15px 20px 0px 20px;
+	text-align: center;
+	margin: 0 auto;
+	width: 650px;
+	
+
+}
+
+.apart-inside {
+	padding-top: 5px;
+}
+
+.apart-budova {
+	padding-top: 0px;
+}
+
+#menu ul ul {
+	margin-left: -2px;
+	border-left: 4px solid rgb(255,255,255);
+	border-right: 4px solid rgb(255,255,255);
+	border-bottom: 4px solid rgb(255,255,255);
+}

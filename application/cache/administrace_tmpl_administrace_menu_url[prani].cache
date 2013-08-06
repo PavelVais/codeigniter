@@ -1,0 +1,12 @@
+a:4:{s:16:"__cache_contents";s:1052:"<section id="administracni-menu">
+	<img src="http://myslimnatebe.cz/web2/images/logo_myslimnatebe.png" width="220"/>
+	<nav id="hlavni">
+	<ul>
+		<li class=" first"><img src="http://myslimnatebe.cz/web2/images/administrace-ikona-dashboard.png"  /><a href="http://myslimnatebe.cz/web2/administrace">Dashboard</a></li>
+		<li><img src="http://myslimnatebe.cz/web2/images/administrace-ikona-ucty.png"  /><a href="http://myslimnatebe.cz/web2/administrace/uzivatele">Správa účtů</a></li>
+		<li class="selected"><img src="http://myslimnatebe.cz/web2/images/administrace-ikona-prani.png"  /><a href="http://myslimnatebe.cz/web2/administrace/prani">Přáníčka</a></li>
+		<li class=" next"><img src="http://myslimnatebe.cz/web2/images/administrace-ikona-nastaveni.png"  /><a href="http://myslimnatebe.cz/web2/administrace/nastaveni">nastavení</a></li>
+		<li class=" last"><img src="http://myslimnatebe.cz/web2/images/administrace-ikona-databaze.png"  /><a href="http://myslimnatebe.cz/web2/administrace/database">Databáze</a></li>
+	</ul>
+</nav>
+</section> ";s:15:"__cache_created";i:1360745375;s:20:"__cache_dependencies";a:0:{}s:15:"__cache_expires";i:1360746815;}

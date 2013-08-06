@@ -1,0 +1,13 @@
+{
+    "name": "vendor/codeigniter",
+    "description": "Description of project codeigniter.",
+    "authors": [
+        {
+            "name": "pavelvais",
+            "email": "vaispavel@gmail.com"
+        }
+    ],
+    "require": {
+
+    }
+}

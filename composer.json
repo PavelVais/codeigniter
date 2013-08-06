@@ -1,13 +1,14 @@
 {
-    "name": "vendor/codeigniter",
-    "description": "Description of project codeigniter.",
-    "authors": [
-        {
-            "name": "pavelvais",
-            "email": "vaispavel@gmail.com"
-        }
-    ],
-    "require": {
-
-    }
+	"name": "vendor/codeigniter",
+	"description": "Internal heavy modified CI framework",
+	"version" : "1.0",
+	"authors": [
+		{
+			"name": "pavelvais",
+			"email": "vaispavel@gmail.com"
+		}
+	],
+	"require": {
+		"php": ">=5.3.2"
+	}
 }

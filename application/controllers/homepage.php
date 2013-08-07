@@ -17,8 +17,7 @@ if ( !defined( 'BASEPATH' ) )
  * @property CI_Session $session
  * @property GoogleAnalytics $googleanalytics
  */
-class Homepage extends My_Controller
-{
+class Homepage extends My_Controller {
 
 	function __construct()
 	{
@@ -29,23 +28,7 @@ class Homepage extends My_Controller
 	public function index()
 	{
 
-		$form = new Form( "confession/add" );
-		$form->addTextArea( "txt_confession" )
-				  ->set_attribute( "class", "" )
-				  ->set_attribute( "id", "input-confession" )
-				  ->set_rule(Form::RULE_FILLED, "Confession can't be empty.")
-				  ->set_rule(Form::RULE_MIN_CHARS, "Confession must have at least %argument% characters.",10)
-				  ->addText( "inp_hashtag" )
-				  ->set_attribute( "class", "" )
-				  ->set_attribute( "id", "input-hashtag" )
-				  ->set_rule( "nospace", "Hashtag can't contain spaces." )
-				  ->set_rule( "onlychars", "Hashtag must contain only characters." )
-				  ->set_attribute( "placeholder", "paste your hashtag" )
-				  ->set_form_attribute( "id", "form-makeconfession" );
-
-
-		$data['form'] = $form;
-
+		$data = array();
 		$this->load->view( 'homepage/view_index', $data );
 	}
 

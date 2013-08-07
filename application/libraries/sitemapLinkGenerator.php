@@ -13,7 +13,7 @@
  * @version        1.1
  *
  */
-class Sitemap {
+class sitemapLinkGenerator {
 
 
     /**

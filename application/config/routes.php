@@ -41,10 +41,9 @@
 $route['default_controller'] = "homepage";
 $route['administrace'] = 'administrace/index';
 
-//$route['moderni_petiboj/uvod'] = 'moderni_petiboj';
 $route['404_override'] = '';
-$route['confession/(\d.*)$'] = 'confession/show/$1';
-$route['hashtag/(.*)$'] = 'hashtag/show/$1';
+//$route['confession/(\d.*)$'] = 'confession/show/$1';
+//$route['hashtag/(.*)$'] = 'hashtag/show/$1';
 //$route['\S+/(\d{1}\w+)$'] = 'prani/zobrazit-srdce/$1';
 
 //$route['AppartDePrague'] = "";

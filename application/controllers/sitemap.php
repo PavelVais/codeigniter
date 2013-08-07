@@ -9,97 +9,61 @@ if ( !defined( 'BASEPATH' ) )
  * @property CI_URI $uri
  * @property CI_DB_active_record $db
  * @property Header $header
- * @property Menu $menu
- * @property Tank_auth $tank_auth //sprava prihlasenych
  * @property Template $template
  * @property Message $message
- * @property MY_Calendar $calendar
  * @property CI_Session $session
- * @property GoogleAnalytics $googleanalytics
- * @property Sitemaps $sitemaps
+ * @property SitemapXMLGenerator $sitemap
  */
 class Sitemap extends CI_Controller {
 
 	function __construct()
 	{
 		parent::__construct();
-		$this->load->library( 'message' );
 	}
 
-	public function nenalezena($title = null)
+	/**
+	 * Vytvoření seznamu stránek pro "strom stránek"
+	 */
+	function index()
 	{
-		set_status_header(404);
-		$data['message'] = $this->message->get( Message::ERROR,true );
-		if ( !($data['message']) )
-			$data['message'] = "Stránka na kterou se snažíte dostat nejspíše neexistuje. :(";
-		$nm = new NotificationsModel;
-		$data['notification_count'] = $nm->count_notifications();
-
-		if ( $title != null )
-			$data['title'] = $title;
-
-		$this->session->keep_flashdata( Message::ERROR );
-		$this->load->view( "view_404", $data );
+		$this->load->library('sitemapLinkGenerator','sitemap');
+		$this->sitemap->set_option('show_index', true); 
+		$this->sitemap->ignore('Administration', '*');
+		$this->sitemap->ignore('*', array('index','CreateFormSignUp'));
+		$this->load->view('sitemap/view_sitemap');
 	}
 
-	public function index($redirect = false)
+	/**
+	 * Funkce na vytvoření sitemapy a následné aktualizace na googlu.
+	 * @param String $redirect [false] - neprovede se redirect. Jinak se 
+	 * funkce redirectuje na vloženou routu v $redirect
+	 */
+	public function create($redirect = false)
 	{
-		$this->load->library( 'sitemaps');
+		$this->load->library( 'sitemapXMLGenerator','sitemap');
 
-		$cm = new ConfessionModel;
-		$hm = new HashtagsModel;
-		
-		$results = $cm->get_old();
-		
-		foreach($results as &$res)
-		{
-			$res->url = base_url("confession/".$res->id);
-		}
-		$this->db->select("created");
-		$results2 = $hm->get();
-		
-		foreach($results2 as &$res)
-		{
-			
-			$res->url = base_url("hashtag/".HashtagsModel::hashtag2url($res->value));
-		}
-		
-		$result = array_merge($results,$results2 );
-		
-		$webs = array("");
+		$webs = array("");	//= Vložení stránek, které chce uživatel dát do sitemapy
 
 		foreach ( $webs as $web )
 		{
 			$item = array(
 			    "loc" => site_url( $web ),
-			    "lastmod" => date( "c" ),
+			    "lastmod" => date( "c" ),	//date( "c", strtotime( $web->created))
 			    "changefreq" => "weekly",
 			    "priority" => "1"
 			);
 
-			$this->sitemaps->add_item( $item );
+			$this->sitemap->add_item( $item );
 		}
 
-		foreach ( $result AS $ress )
-		{
-			$item = array(
-			    "loc" => $ress->url,
-			    "lastmod" =>  date( "c", strtotime( isset($ress->created) ? $ress->created : null)),
-			    "changefreq" => "daily",
-			    "priority" => "0.8"
-			);
-
-			$this->sitemaps->add_item( $item );
-		}
 		// file name may change due to compression
-		$file_name = $this->sitemaps->build( "sitemap.xml", false );
-
-		$responses = $this->sitemaps->ping( site_url( $file_name ) );
+		$file_name = $this->sitemap->build( "sitemap.xml", false );
+		$responses = $this->sitemap->ping( site_url( $file_name ) );
 		
 		if ($redirect != false)
 		{
 			$this->session->set_flashdata("admin","Obnovení sitemapy proběhlo v pořádku.");
-			redirect("administrace/nastaveni");
+			redirect($redirect);
 		}
 			
 

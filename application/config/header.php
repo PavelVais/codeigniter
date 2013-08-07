@@ -121,21 +121,17 @@ $config['header']['meta'][] = array(
 
 //$config['header']['css'][] = 'http://fonts.googleapis.com/css?family=Open+Sans:300,400,600';
 $config['header']['css'][] = array(
-    'url' => 'bootstrap',
+    'url' => 'bootstrap.css',
     'cover' => 'all',
 );
 $config['header']['css'][] = array(
-    'url' => 'mystyle',
+    'url' => 'mystyle.css',
     'cover' => 'all',
 	 'except' => 'administrace'
 );
 $config['header']['css'][] = array(
-    'url' => 'administration',
+    'url' => 'administration.css',
     'cover' => 'administrace',
-);
-$config['header']['css'][] = array(
-    'url' => array('styles'),
-    'cover' => 'homepage'
 );
 //$config['header']['css'][] = array("jquery.smartwizard.css","jquery.ui.timepicker.css");
 

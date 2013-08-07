@@ -17,7 +17,7 @@ if ( !defined( 'BASEPATH' ) )
  * @property CI_Session $session
  * @property GoogleAnalytics $googleanalytics
  */
-class Homepage extends CI_Controller
+class Homepage extends My_Controller
 {
 
 	function __construct()

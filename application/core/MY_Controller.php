@@ -31,9 +31,12 @@ if ( !defined( 'BASEPATH' ) )
  */
 class My_Controller extends CI_Controller
 {
-
-	private static $instance;
-
+	/**
+	 * Rozlisuje, jestli se nachazime v administraci, nebo ne
+	 * @var Boolean
+	 */
+	private $is_administration = FALSE;
+	
 	/**
 	 * Constructor
 	 */
@@ -41,18 +44,30 @@ class My_Controller extends CI_Controller
 	{
 		parent::__construct();
 
-		if ( !User::is_logged_in() )
-		{
-			redirect( 'administrace/login' );
-		}
-		$this->load->library( "template" );
-		$this->menu->setGroup( 'administrace-hlavni' );
+		if ($this->uri->segment(2) == "administrace")
+			$this->is_administration = TRUE;
+			
+		//= Nacteni vsech potrebnych static trid
+		$files = array(
+			   array('helpers/head_helper','head','init')
+			   );
+		
+		load_static_classes($files);
+		
+		if ($this->is_administration && User::is_logged_in() == FALSE)
+			redirect("administrace/login");
+			
+		
+		/*$this->load->library( "template" );
+		$this->menu->setGroup( 'administrace-hlavni' );*/
 
 		//= Pokud nejde o ajaxovy dotaz, pripravi se menu (nacte z cache)
 		/*if ( !$this->input->is_ajax_request() )
 			$this->template->add_tag( "url", $this->uri->segment( 2 ) )
 					  ->load( "administrace/tmpl_administrace_menu" );*/
 	}
+	
+	
 
 }
 

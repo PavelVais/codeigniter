@@ -12,7 +12,7 @@ if (!defined('BASEPATH')) exit('No direct script access allowed');
  * @access public
  * @package sitemaps
  */
-class Sitemaps
+class SitemapXMLGenerator
 {
 
     private $CI;

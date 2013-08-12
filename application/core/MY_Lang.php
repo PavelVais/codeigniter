@@ -157,26 +157,7 @@ class MY_Lang extends CI_Lang
 		$CI = & get_instance();
 
 		$uri = $CI->uri->uri_string();
-		if ( $uri != "" )
-		{
-			$exploded = explode( '/', $uri );
-
-			if ( $exploded[0] == $this->lang() )
-			{
-				$exploded[0] = $lang;
-			}
-			else
-			{
-				array_splice( $exploded, 0, 0, $lang );
-			}
-
-			$uri = implode( '/', $exploded );
-		}
-		else
-		{
-			$uri = $lang;
-		}
-		return $uri;
+		return $lang . "/" . $uri;
 	}
 
 	// is there a language segment in this $uri?

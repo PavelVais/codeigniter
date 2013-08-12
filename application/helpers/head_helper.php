@@ -22,7 +22,7 @@ class Head
 		self::$ci->load->driver( 'minify' );
 		self::$settings = self::$ci->config->item( 'header' );
 		self::$generate_deffered = false;
-		
+
 		//= Na konci initu spravime vsechny tagy v configu, aby se nahrali
 		self::config_tags_proceed();
 	}
@@ -35,7 +35,7 @@ class Head
 			self::add()->string( '<link href="' . base_url() . self::get_setting( 'favicon' ) . '" rel="icon" type="image/x-icon">' );
 			self::$settings['title'] = $title;
 
-					
+
 
 
 			echo doctype( self::get_setting( "doctype" ) ) . PHP_EOL;
@@ -73,18 +73,18 @@ class Head
 
 	static private function config_tags_proceed()
 	{
-		$head_factory = new Head_factory();
+		$head_factory = new Head_factory( self::$settings );
 
 		$fnc = function($obj, $type, Head_factory $head_factory)
-				  {
-					  if ( !is_array( $obj ) )
-						  return;
+		{
+			if ( !is_array( $obj ) )
+				return;
 
-					  foreach ( $obj as $value )
-					  {
-						  $head_factory->{$type}( $value );
-					  }
-				  };
+			foreach ( $obj as $value )
+			{
+				$head_factory->{$type}( $value );
+			}
+		};
 
 		$fnc( self::get_setting( "meta" ), "meta", $head_factory );
 		$fnc( self::get_setting( "css" ), "css", $head_factory );
@@ -107,12 +107,12 @@ class Head
 
 	static public function remove()
 	{
-		return new Head_factory( Head_factory::MODE_REMOVE );
+		return new Head_factory( self::$settings, Head_factory::MODE_REMOVE );
 	}
 
 	static public function add()
 	{
-		return new Head_factory();
+		return new Head_factory( self::$settings );
 	}
 
 	static public function add_to_container($type, $identifier, $string, $deffered = false)
@@ -140,10 +140,12 @@ class Head_factory
 	const MODE_ADD = true;
 	const MODE_REMOVE = false;
 
-	public function __construct($mode = self::MODE_ADD)
+	public function __construct($settings, $mode = self::MODE_ADD)
 	{
 		$this->mode_add = $mode;
 		$this->ci = & get_instance();
+		$this->cssPrefix = $settings['cache-css-prefix'];
+		$this->jsPrefix = $settings['cache-js-prefix'];
 	}
 
 	/**
@@ -183,7 +185,7 @@ class Head_factory
 	function css($data = null)
 	{
 		$is_array = is_array( $data );
-		$urls = !$is_array ? $data : (array_key_exists('url', $data ) ? $data['url'] : $data);
+		$urls = !$is_array ? $data : (array_key_exists( 'url', $data ) ? $data['url'] : $data);
 		if ( !$this->mode_add )
 		{
 			//= Pokud se jedna o vymazani, tak se data vymazou a tim script konci
@@ -196,22 +198,24 @@ class Head_factory
 		//= Musime url adresu pretvorit na pole
 		if ( !is_array( $urls ) )
 			$urls = array($urls);
-		
+
 		$identifier = $urls[0]; //= Identifikator, ktery slouzi k pripadnemu vymazani
-			
-		
 		//= Nejedna se nahodou o cachovani?
 		if ( $is_array && isset( $data['compress'] ) && $data['compress'] )
 		{
-			$filename = $data['name'] . $data['version'] . ".js";
-			$urls = "css/cache/minjsoutput_" . $filename;
-			if ( ($min_output = $this->ci->minify->get_file( $urls )) == FALSE || (isset( $data['debug'] ) && $data['debug']) )
+			$filename = $data['name'] . $data['version'] . ".css";
+			$urls = $this->cssPrefix . $filename;
+			if ( ($min_output = $this->ci->minify->get_file(  "css/" .$urls )) == FALSE || (isset( $data['debug'] ) && $data['debug']) )
 			{
-				$min_output = $this->ci->minify->combine_files( $data['url'], "css", TRUE );
-				$this->ci->minify->save_file( $min_output, $urls );
+				$min_output = $this->ci->minify->combine_files( array_map( function($val)
+						  {
+							  return 'css/' . $val;
+						  }, $data['url'] ), "css", TRUE );
+				$this->ci->minify->save_file( $min_output, "css/" .$urls );
 			}
+
 			$identifier = $data['name'];
-			$urls[0] = $urls;
+			$urls = array($urls);
 		}
 
 		foreach ( $urls as $url )
@@ -263,7 +267,7 @@ class Head_factory
 		if ( $is_array && isset( $data['compress'] ) && $data['compress'] )
 		{
 			$filename = $data['name'] . $data['version'] . ".js";
-			$urls = "js/cache/minjsoutput_" . $filename;
+			$urls = "js" . $this->jsPrefix . $filename;
 
 			if ( ($min_output = $this->ci->minify->get_file( $urls )) == FALSE || (isset( $data['debug'] ) && $data['debug']) )
 			{

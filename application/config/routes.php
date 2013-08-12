@@ -42,15 +42,22 @@ $route['default_controller'] = "homepage";
 $route['administrace'] = 'administrace/index';
 
 $route['404_override'] = '';
-//$route['confession/(\d.*)$'] = 'confession/show/$1';
-//$route['hashtag/(.*)$'] = 'hashtag/show/$1';
-//$route['\S+/(\d{1}\w+)$'] = 'prani/zobrazit-srdce/$1';
 
-//$route['AppartDePrague'] = "";
+/*
+| -------------------------------------------------------------------------
+| INTERNATIONALIZATION (il8n plugin)
+| -------------------------------------------------------------------------
+| 
+*/
 
-//route example: http://domain.tld/en/controller => http://domain.tld/controller
-//$route['(\w{2})/(.*)'] = '$2';
-//$route['(\w{2})'] = $route['default_controller'];  
+// example: '/en/about' -> use controller 'about'
+$route['^cs/(.+)$'] = "$1";
+$route['^en/(.+)$'] = "$1";
+ 
+// '/en' and '/cs' -> use default controller
+$route['^cs$'] = $route['default_controller'];
+$route['^en$'] = $route['default_controller'];
+
 
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

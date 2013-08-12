@@ -1,0 +1,3 @@
+[submodule "ci_plugin_HTML"]
+	path = ci_plugin_HTML
+	url = https://github.com/PavelVais/ci_plugin_HTML.git

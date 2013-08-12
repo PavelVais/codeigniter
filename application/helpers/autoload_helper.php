@@ -16,6 +16,11 @@ spl_autoload_extensions( '.php, .class.php' );
 function classLoader($class)
 {
 
+	if ( !class_exists( 'CI_Model' ) )
+	{
+		load_class( 'Model', 'core' );
+	}
+
 	$path = APPPATH . 'models/' . strtolower( $class ) . '.php';
 	if ( file_exists( $path ) )
 	{

@@ -1,13 +1,9 @@
 <?php
 /****************************************
- * Czech language for MyslimNaTebe sites
+ * English language
  ****************************************/
 
-$lang['common_account_activation'] = 'Paráda! Váš účet je aktivován. Nyní můžete využívat váš profil naplno!';
-$lang['common_account_activation_failed'] = 'buď jste vložili špatnou adresu nebo planost aktivace vypršela. Chcete aktivovat znova?';
-$lang['profil_password_change_succ'] = 'Pro změnu hesla musíte potvrdit email, který Vám každou chvíli příjde.';
-$lang['wish_save_successful'] = "Vaše přání bylo úspěšně uloženo.";
-$lang['wish_add_successful'] = "Vaše přání bylo úspěšně přidáno.";
+$lang['debug.arguments'] = 'Hi %1, You have %2 unread messages.';
 
 $lang['calendar_day_1'] = "Pondělí";
 $lang['calendar_day_1_short'] = "Po";

@@ -27,7 +27,6 @@ class Homepage extends My_Controller {
 
 	public function index()
 	{
-		$s = new UsersModel();
 		$data = array();
 		$this->load->view( 'homepage/view_index', $data );
 	}

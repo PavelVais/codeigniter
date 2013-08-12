@@ -25,9 +25,15 @@
 					<?php echo anchor($this->lang->switch_uri($this->lang->lang() == 'en' ? 'cs' : 'en')); ?>
 					<br>
 					<span style="color: #9F6000;">
-						<?php echo strtr(' echo anchor($this->lang->switch_uri('.($this->lang->lang() == 'en' ? 'cs' : 'en').'));',Array("<"=>"&lt;","&"=>"&amp;")); ?>
+						<?php echo strtr(' echo anchor($this->lang->switch_uri(\''.($this->lang->lang() == 'en' ? 'cs' : 'en').'\'));',Array("<"=>"&lt;","&"=>"&amp;")); ?>
 					</span>
 				</p>
+				<p>Plugin byl upraven takto:</p>
+				<ul>
+					<li>První jazyk je i defaultní, v url se nemusí zadat a automaticky se nastaví.</li>
+					<li>Pokuď se defaultní jazyk vloží do url, automaticky se url přesměruje tak, aby jazykový identifikátor v url nebyl.</li>
+					<li>Při dotazování se na <span style="color: #9F6000;">$this->uri->segment()</span> se jazykový identifikátor nebere v potaz.</li>
+				</ul>
 				
 			</div>
 

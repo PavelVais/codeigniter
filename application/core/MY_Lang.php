@@ -198,6 +198,11 @@ class MY_Lang extends CI_Lang
 	// add language segment to $uri (if appropriate)
 	function localized($uri)
 	{
+		if ($this->lang() === $this->default_lang())
+		{
+			return $uri;
+		}
+		
 		if ( $this->has_language( $uri ) || $this->is_special( $uri ) || preg_match( '/(.+)\.[a-zA-Z0-9]{2,4}$/', $uri ) )
 		{
 			// we don't need a language segment because:

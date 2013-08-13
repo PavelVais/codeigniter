@@ -370,5 +370,20 @@ $config['rewrite_short_tags'] = FALSE;
 $config['proxy_ips'] = '';
 
 
+/*
+|--------------------------------------------------------------------------
+| Maintenance mode
+|--------------------------------------------------------------------------
+|
+| If maintain mode is enabled, everyone except "exclude IPs" is 
+| automatically redirected into "maintenance url"
+|
+*/
+$config['maintenance_mode'] = FALSE;
+$config['maintenance_exclude_ip'] = array('127.0.0.1','188.122.208.9');
+$config['maintenance_url'] = 'homepage/we-are-working-on-it';
+
+
+
 /* End of file config.php */
 /* Location: ./application/config/config.php */

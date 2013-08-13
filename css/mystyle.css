@@ -1,23 +1,8 @@
-@import url(http://fonts.googleapis.com/css?family=Petit+Formal+Script&subset=latin-ext);
 
 body {background: url('images/bg.jpg');}
-/*h1,.nice { font-family: 'Petit Formal Script',cursive;}*/
-p.nice { font-size: 26px; line-height: 26px;}
-h2.nice { text-shadow: 0px 0px 2px #AAA,
-			-5px 5px 0px #00e6e6,
-			-10px 10px 0px #01cccc,
-			-15px 15px 0px #00bdbd;
-		font-size: 55px;
-		color: #FFF;
-		margin-bottom: 40px;
+h1 { line-height: 70px;}
+h1 { color: #000; text-shadow: 2px 4px 3px rgba(0,0,0,0.3); top: 0;}
 
-}
-
-#main-wrapper img {
-	width: 552px;
-	margin: 0 auto;
-	display: block;
-}
 
 .btn-primary,.btn-danger{
 	background-color: #2685B1;
@@ -30,28 +15,9 @@ h2.nice { text-shadow: 0px 0px 2px #AAA,
 }
 .hero-unit { padding-top: 30px;}
 .hero-unit h1 { margin-bottom: 15px;}
-#menu { background: #FFF;}
-footer p {
-	color: #565656;
-	font-size: 14px;
-}
-
 ul.nav ul li.active a,ul.nav ul li:hover a{ margin-right: -30px;}
-.hashtag { 
-	background-color: rgb(38, 133, 177);
-	color: #FFF;
-	padding: 8px;
-	border-radius: 8px;
-	text-shadow: none;
-	margin: 8px 3px;
-}
-ul#hashtags li { margin: 8px 0px;}
-.hashtag > .count { padding-right: 4px; border-right: 1px solid #FFF; margin-right: 2px;}
-.hashtag:hover > .count { text-decoration:none;} 
-a.hashtag { color: #FFF;}
 li a:hover i,li.active a i {background-image: url("images/glyphicons-halflings.png");}
-h1 { line-height: 70px;}
-h1 { color: #000; text-shadow: 2px 4px 3px rgba(0,0,0,0.3); top: 0;}
+
 .alert { position: relative;}
 .alert.alert-success p { width: 95%;}
 .no-overflow { overflow-x: hidden;}
@@ -62,57 +28,7 @@ h1 { color: #000; text-shadow: 2px 4px 3px rgba(0,0,0,0.3); top: 0;}
 /**************************
 ORIGO STRANKY
 ***************************/
-#main-wrapper {
-	top: 35px;
-	position: relative;
-}
 
-.social {
-	width: 35px;
-	height: 35px;
-	background: url("images/social.png") no-repeat;
-	display: inline-block;
-	margin-right: 15px;
-}
-.social.twitter {
-	background-position: -45px 0px;
-	margin-right: 0;
-}
-#btn-confession {
-	font-size: 35px;
-	text-shadow: 2px 2px 2px rgba(80,80,80,.7);
-	font-weight: bold;
-	text-align: center;
-	background: #cd6eac; /* Old browsers */
-	background: -moz-linear-gradient(top,  #cd6eac 0%, #a83480 100%); /* FF3.6+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#cd6eac), color-stop(100%,#a83480)); /* Chrome,Safari4+ */
-	background: -webkit-linear-gradient(top,  #cd6eac 0%,#a83480 100%); /* Chrome10+,Safari5.1+ */
-	background: -o-linear-gradient(top,  #cd6eac 0%,#a83480 100%); /* Opera 11.10+ */
-	background: -ms-linear-gradient(top,  #cd6eac 0%,#a83480 100%); /* IE10+ */
-	background: linear-gradient(to bottom,  #cd6eac 0%,#a83480 100%); /* W3C */
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cd6eac', endColorstr='#a83480',GradientType=0 ); /* IE6-9 */
-	letter-spacing: -2px;
-	border: none;
-	-webkit-border-radius: 12px;
-	-moz-border-radius: 12px;
-	border-radius: 12px;
-	width: 300px;
-	margin: 0 auto;
-}
-#input-confession-wrapper {
-	width: 500px;
-	margin: 0 auto;
-	min-height: 100px;
-}
-#input-confession { width: 100%; min-height: 80px;}
-#input-hashtag-wrapper {
-	width: 300px;
-	margin: 10px auto;
-}
-#input-hashtag-wrapper span { font-size: 24px; padding: 0px 5px;}
-#input-hashtag { width: 250px; font-size: 17px;}
-#input-hashtag-wrapper .help-inline { font-size: 13px; float:right; margin: -8px 0 5px 0;}
-.counter { color: #888; position: relative; top: -33px; right: 14px; float: right;}
 
 /* Large desktop */
 @media (min-width: 1200px) { 
@@ -169,148 +85,4 @@ ORIGO STRANKY
 @media (max-width: 480px) { 
 }
 
-
-.bubblingG {
-	text-align: center;
-	width:55px;
-	height:31px;
-	margin: 0 auto;
-	position: relative;
-	margin-bottom: 30px;
-	display: none;
-
-}
-.bubblingG p { position: absolute; top: 30px; 
-			color: #AD75A8;
-			left: -15px;
-			font-size: 18px;
-}
-.bubblingG span {
-	padding: 0 !important;
-	display: inline-block;
-	vertical-align: middle;
-	width: 6px;
-	height: 6px;
-	margin: 16px auto;
-	background: #D689BC;
-	-moz-border-radius: 32px;
-	-moz-animation: bubblingG 1s infinite alternate;
-	-webkit-border-radius: 32px;
-	-webkit-animation: bubblingG 1s infinite alternate;
-	-ms-border-radius: 32px;
-	-ms-animation: bubblingG 1s infinite alternate;
-	-o-border-radius: 32px;
-	-o-animation: bubblingG 1s infinite alternate;
-	border-radius: 32px;
-	animation: bubblingG 1s infinite alternate;
-}
-
-#bubblingG_1 {
-	-moz-animation-delay: 0s;
-	-webkit-animation-delay: 0s;
-	-ms-animation-delay: 0s;
-	-o-animation-delay: 0s;
-	animation-delay: 0s;
-}
-
-#bubblingG_2 {
-	-moz-animation-delay: 0.3s;
-	-webkit-animation-delay: 0.3s;
-	-ms-animation-delay: 0.3s;
-	-o-animation-delay: 0.3s;
-	animation-delay: 0.3s;
-}
-
-#bubblingG_3 {
-	-moz-animation-delay: 0.6s;
-	-webkit-animation-delay: 0.6s;
-	-ms-animation-delay: 0.6s;
-	-o-animation-delay: 0.6s;
-	animation-delay: 0.6s;
-}
-
-@-moz-keyframes bubblingG {
-	0% {
-	width: 6px;
-	height: 6px;
-	background-color:#D689BC;
-	-moz-transform: translateY(0);
-}
-
-100% {
-	width: 15px;
-	height: 15px;
-	background-color:#571957;
-	-moz-transform: translateY(-13px);
-}
-
-}
-
-@-webkit-keyframes bubblingG {
-	0% {
-	width: 6px;
-	height: 6px;
-	background-color:#D689BC;
-	-webkit-transform: translateY(0);
-}
-
-100% {
-	width: 15px;
-	height: 15px;
-	background-color:#571957;
-	-webkit-transform: translateY(-13px);
-}
-
-}
-
-@-ms-keyframes bubblingG {
-	0% {
-	width: 6px;
-	height: 6px;
-	background-color:#D689BC;
-	-ms-transform: translateY(0);
-}
-
-100% {
-	width: 15px;
-	height: 15px;
-	background-color:#571957;
-	-ms-transform: translateY(-13px);
-}
-
-}
-
-@-o-keyframes bubblingG {
-	0% {
-	width: 6px;
-	height: 6px;
-	background-color:#D689BC;
-	-o-transform: translateY(0);
-}
-
-100% {
-	width: 15px;
-	height: 15px;
-	background-color:#571957;
-	-o-transform: translateY(-13px);
-}
-
-}
-
-@keyframes bubblingG {
-	0% {
-	width: 6px;
-	height: 6px;
-	background-color:#D689BC;
-	transform: translateY(0);
-}
-
-100% {
-	width: 15px;
-	height: 15px;
-	background-color:#571957;
-	transform: translateY(-13px);
-}
-
-}
 

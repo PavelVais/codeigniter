@@ -137,6 +137,15 @@ class MY_Lang extends CI_Lang
 		return $line;
 	}
 
+	function view($file,$data,$return_as_string = false)
+	{
+		$CI = & get_instance();
+		
+		//if (file)
+		
+		$ci->load->view($file,$data,$return_as_string);
+	}
+	
 	function is_special($uri)
 	{
 		$exploded = explode( '/', $uri );

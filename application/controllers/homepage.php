@@ -30,7 +30,11 @@ class Homepage extends My_Controller {
 		$data = array();
 		$this->load->view( 'homepage/view_index', $data );
 	}
-
+	
+	public function we_are_working_on_it()
+	{
+		$this->load->view( 'homepage/view_maintenance' );
+	}
 }
 
 /* End of file homepage.php */

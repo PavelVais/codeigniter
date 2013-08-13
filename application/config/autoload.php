@@ -53,7 +53,7 @@ $autoload['packages'] = array();
 */
 
 //$autoload['libraries'] = array('database','menu','header','footer','tank_auth');
-$autoload['libraries'] = array('database','cache','menu','template','ConsoleLogger');
+$autoload['libraries'] = array('maintenance','database','cache','menu','template','ConsoleLogger');
 
 
 /*

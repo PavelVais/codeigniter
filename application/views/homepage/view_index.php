@@ -16,7 +16,6 @@
 					<span style="color: #9F6000;">
 						<?php echo strtr(' $this->lang->line( \'debug.arguments\',\'Pavel\',25 )',Array("<"=>"&lt;","&"=>"&amp;")); ?>
 					</span>
-					
 				</p>
 				<p><strong>actual language: </strong>
 					<?php echo $this->lang->lang() ?>
@@ -34,9 +33,11 @@
 					<li>Pokuď se defaultní jazyk vloží do url, automaticky se url přesměruje tak, aby jazykový identifikátor v url nebyl.</li>
 					<li>Při dotazování se na <span style="color: #9F6000;">$this->uri->segment()</span> se jazykový identifikátor nebere v potaz.</li>
 				</ul>
-				
 			</div>
-
+			<div class="well">
+				<h2>Maintenance plugin:</h2>
+				<p>v configu je možnost nastavit maintenance mod: Nikdo z návštěvníku se nebude moci dostat na tento web. Místo toho uvidí informační hlášku.</p>
+			</div>
 		</div>
 	</div>
 </body>

@@ -1,4 +1,4 @@
-<?php Head::generate( 'Úvodní stránka', FALSE ); ?>
+<?php Head::generate( 'Údržba stránek', FALSE ); ?>
 <script>
 	$(document).ready(function() {
 	});

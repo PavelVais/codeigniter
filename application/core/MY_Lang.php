@@ -68,7 +68,7 @@ class MY_Lang extends CI_Lang
 	{
 		global $URI;
 		$URI->uri_string = str_replace( array_keys( $this->languages ), '', $URI->uri_string );
-		$URI->uri_string = ltrim($URI->uri_string,'/');
+		$URI->uri_string = ltrim( $URI->uri_string, '/' );
 		$URI->segments = array();
 		$URI->_explode_segments();
 		$URI->_reindex_segments();
@@ -137,15 +137,58 @@ class MY_Lang extends CI_Lang
 		return $line;
 	}
 
-	function view($file,$data,$return_as_string = false)
+	/**
+	 * Nacte se view dle aktualniho jazyka. View musi mit postfix dle 
+	 * daneho jazykoveho identifikatoru (napr.: 'view_index_cs')
+	 * @param String $file
+	 * @param array $data
+	 * @param boolean $return_as_string
+	 * @return String
+	 */
+	function view($file, $data = '', $return_as_string = false)
 	{
 		$CI = & get_instance();
-		
-		//if (file)
-		
-		$ci->load->view($file,$data,$return_as_string);
+		$name = $file . "_" . $this->lang();
+		if ( !file_exists( 'application/views/' . $name . '.php' ) )
+		{
+			$name = $file . "_" . $this->default_lang();
+			if ( !file_exists( 'application/views/' . $name . '.php' ) )
+				$name = $file;
+		}
+
+		return $CI->load->view( $name, $data, $return_as_string );
 	}
-	
+
+	/**
+	 * Vrati cestu k souboru s priponou daneho jazykoveho identifikatoru.
+	 * Pokud soubor s danym postfixem neexistuje, zjisti se, jeslti existuje
+	 * soubor s defaultnim jazykovym postfixem. V dalsim pripade se vrati pouze 
+	 * samotna url bez postfixu.
+	 * priklad: "images/sprites.png" => "images/sprites_cs.png"
+	 * @param String $path - cesta k souboru.
+	 * @param boolean $return_as_url - vrati se bud absolutni url nebo jen 
+	 * relativni.
+	 * @return String
+	 */
+	function link($path, $return_as_url = true)
+	{
+		$path_parts = pathinfo( $path );
+
+		$filename = $path_parts['dirname'] . '/' . $path_parts['filename'] . '_' . $this->lang() . '.' . $path_parts['extension'];
+
+		if ( !file_exists( $filename ) )
+		{
+			$filename = $path_parts['dirname'] . '/' . $path_parts['filename'] . '_' . $this->default_lang() . '.' . $path_parts['extension'];
+			if ( !file_exists( $filename ) )
+				$filename = $path;
+		}
+
+		if ( $return_as_url )
+			return base_url( $filename );
+		else
+			return $filename;
+	}
+
 	function is_special($uri)
 	{
 		$exploded = explode( '/', $uri );
@@ -207,11 +250,11 @@ class MY_Lang extends CI_Lang
 	// add language segment to $uri (if appropriate)
 	function localized($uri)
 	{
-		if ($this->lang() === $this->default_lang())
+		if ( $this->lang() === $this->default_lang() )
 		{
 			return $uri;
 		}
-		
+
 		if ( $this->has_language( $uri ) || $this->is_special( $uri ) || preg_match( '/(.+)\.[a-zA-Z0-9]{2,4}$/', $uri ) )
 		{
 			// we don't need a language segment because:

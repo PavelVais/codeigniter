@@ -13,8 +13,7 @@ if ( !defined( 'BASEPATH' ) )
  * @property Tank_auth $tank_auth //sprava prihlasenych
  * @property Template $template
  * @property Message $message
- * @property MY_Calendar $calendar
- * @property CI_Session $session
+ * @property MY_Lang $lang
  * @property GoogleAnalytics $googleanalytics
  */
 class Homepage extends My_Controller {
@@ -33,7 +32,7 @@ class Homepage extends My_Controller {
 	
 	public function we_are_working_on_it()
 	{
-		$this->load->view( 'homepage/view_maintenance' );
+		$this->lang->view('homepage/view_maintenance');
 	}
 }
 

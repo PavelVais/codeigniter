@@ -7,10 +7,25 @@ if ( !defined( 'BASEPATH' ) )
  * DML neboli database model layer je abstraktni trida slouzici ke
  * komunikaci s databazi
  * Jako Abstraktni tridu je mozne DM pouzivat jako rodice pro dalsi tridy.
+ * @changelog
+ * 2.0 - 
+ *  - odstranena funkce cache. (neni za potrebi, je oddelena)
+ *  - get() , get_one(), update() a save() prejmenovany na:
+ * 		- dbGet(), dbGetOne(), dbUpdate() a dbSave()
+ *  - pri vynulovani promenny staci dat add_data('sloupec',null);
+ *  + pridana funkce dbJoin()
+ *  + pridana funkce dbJoinMN()
+ *  + pridana funkce filter
+ *  + pridana funkce select
+ *  + pridany hooky (na nich je zalozen dbJoin() a dbJoinMN()
+ *  - Vytvoreni DMLTable se presunulo do tdy DMLBuilder.
+ * 		+ pridana funkce DMLBuilder::loadTableInfo()		
+ * 		+ pridana funkce DMLBuilder::buildTable()		
+ * 
  * 
  * @name DML
  * @author	Pavel Vais
- * @version 1.1
+ * @version 2.0
  * @copyright Pavel Vais
  */
 
@@ -19,8 +34,7 @@ if ( !defined( 'BASEPATH' ) )
  * @property CI_DB_active_record $db
  * @property ConsoleLogger $consolelogger
  */
-abstract class DML extends CI_Model
-{
+abstract class DML extends CI_Model {
 
 	/**
 	 * Odkazování na codeigniter
@@ -35,28 +49,17 @@ abstract class DML extends CI_Model
 	protected $db;
 
 	/**
-	 * Cachovaci system ze tridy Cache
-	 * @var Cache
-	 */
-	protected $cache;
-
-	/**
-	 * Obal pro cachovani sql dotazu
-	 * @var DMLCache
-	 */
-	private $query_cache;
-
-	/**
 	 * Trida, ktera zapouzdruje infromace z dane tabulky
 	 * @var DMLTable
 	 */
-	protected $table_info;
+	protected $tableInfo;
 
 	/**
-	 * Prefix k souborum vstahujici se k dml
-	 * @var String 
+	 * Hooky, ktery se provedou PRED (PRE)
+	 * nebo PO (POST) vykonani GET prikazu
+	 * @var type 
 	 */
-	private $cache_prefix = 'dml_';
+	protected $hooks = array();
 
 	/**
 	 * Obsahuje hodnoty ke sloupcum, ktere se budou
@@ -66,7 +69,8 @@ abstract class DML extends CI_Model
 	private $data;
 
 	/**
-	 *
+	 * Sberna erroru. Pokud zadny neni, vrati se false
+	 * - get_error()
 	 * @var Array 
 	 */
 	private $error;
@@ -78,35 +82,47 @@ abstract class DML extends CI_Model
 	private $last_query = array();
 
 	/**
-	 * $escape signalizuje, jestli se update nebo save provede
-	 * s excapovanyma datama nebo ne.
-	 * Pro vyssi bezpecnost nepouzivat, jen v pripade
-	 * ze opravdu vite co delate.
-	 * @var boolean
+	 * Nazev Tabulky. Nyni se nemusi volat pres get_table_name();
+	 * @var type 
 	 */
-	private $escape = TRUE;
+	protected $name;
 
 	/**
-	 * Tato konstanta zaruci, ze se vlozi hodnota NULL do 
-	 * updatu, nebo savu. 
-	 * Pokud se vlozi string NULL, tak se dana hodnota smaze,
-	 * Timto se zaruci, ze se vlozi hodnota NULL
+	 * Uchovava vsechny selekty, ktere se pouziji
+	 * @var type 
 	 */
+	protected $select;
 
-	const NULL_VALUE = '@null';
+	/**
+	 * Pokud je TRUE, neprovadi se zadna validace
+	 * @var type 
+	 */
+	private $disableValidation = false;
 
 	/**
 	 * Constructor teto tridy
 	 */
 	function __construct($table_name)
 	{
-
+		Autoloader::loadStatic( 'models/databasemodel/dmlbuilder', 'DMLBuilder' );
 		$this->ci = & get_instance();
-		$this->ci->load->library( 'cache' );
-		$this->data = array();
+		$this->name = $table_name;
 		$this->cache = $this->ci->cache;
 		$this->db = $this->ci->db;
-		$this->table_info = new DMLTable( $table_name );
+		$this->tableInfo = DMLBuilder::loadTableInfo( $table_name );
+
+		$this->data = array();
+		$this->select = array();
+		$this->hooks = array(
+		    'PRE' => array(),
+		    'POST' => array()
+		);
+
+		//= pridani hooku na validaci selectu
+		$this->hooks['PRE'][] = array(
+		    'type' => 'SELECT'
+		);
+
 		include_once APPPATH . "models/databasemodel/dmlvalidatorinterface.php";
 	}
 
@@ -115,7 +131,7 @@ abstract class DML extends CI_Model
 	 * @param array $data
 	 * @return \DML 
 	 */
-	public function fetch_data($data)
+	public function fetchData($data)
 	{
 		if ( is_object( $data ) )
 			$data = get_object_vars( $data );
@@ -131,84 +147,176 @@ abstract class DML extends CI_Model
 	 * @param String $value - hodnota, ktera se prida do nazvu sloupce ($data)
 	 * @return \DML 
 	 */
-	public function add_data($data, $value = null)
+	protected function addData($data, $value = null)
 	{
 		if ( is_array( $data ) )
 			$this->data = array_merge( $this->data, $data );
 
-		if ( !is_null( $value ) )
-		{
-			if ( $value === 0 )
-				$this->data[$data] = 0;
-			else
-				$this->data[$data] = ($value === self::NULL_VALUE ? null : $value);
-		}
 		return $this;
 	}
 
-	protected function get()
+	protected function removeData($data)
 	{
-		if ( $this->query_cache != null )
-		{
+		if ( isset( $this->data[$data] ) )
+			unset( $this->data[$data] );
+		return $this;
+	}
 
-			$result = $this->query_cache->get();
+	/**
+	 * Ziska vsechny data z databaze. Pokud je nastaven nejaky join,
+	 * prida se k vysledku
+	 * @return boolean
+	 */
+	protected function dbGet()
+	{
+		$this->log_operation( $result );
 
-			if ( $result == false )
-			{
+		if ( $result->num_rows() == 0 )
+			return false;
 
-				$result = $this->db->get( $this->table_info->get_table_name() );
+		//= Projeti vsech PRE HOOKU
+		$this->proceedPreProcessing();
 
-				if ( $result->num_rows() > 0 )
-				{
-					$result = $result->result();
+		$result = $this->db->get( $this->name );
+		$result = $result->result();
 
-					$this->query_cache->save( $result );
-				}
-				else
-				{
-					return FALSE;
-				}
-			}
-			else
-			{
-				$this->db->_reset_select();
-			}
-		}
-		else
-		{
-			$result = $this->db->get( $this->table_info->get_table_name() );
+		//= Je aktivni nejaky postProcess?
+		$this->proceedPostProcessing( $result );
 
-			$this->log_operation( $result );
-
-			if ( $result->num_rows() == 0 )
-				return false;
-			else
-				return $result->result();
-		}
-
-		$this->clear_query_cache();
 		return $result;
 	}
 
 	/**
-	 * Vrati jeden radek z tabulky. Na tento prikaz
-	 * se nevstahuje zadne cachovani.
+	 * Vrati jeden radek z tabulky. 
 	 * Pokud dany radek neexistuje, vraci se FALSE
 	 * @return boolean FALSE pri nezdaru / vysledek (Object)  
 	 */
-	protected function get_one()
+	protected function dbGetOne()
 	{
 		$this->db->limit( 1 );
-		$result = $this->db->get( $this->table_info->get_table_name() );
+
+		//= Projeti vsech PRE HOOKU
+		$this->proceedPreProcessing();
+
+		$result = $this->db->get( $this->tableInfo->get_table_name() );
 		$this->save_last_query();
 		$this->log_operation( $result );
-		return $result->num_rows() == 1 ? $result->row() : FALSE;
+
+		if ( $result->num_rows() != 1 )
+			return FALSE;
+
+		$this->proceedPostProcessing( $result->result() );
+		return $result->row();
+	}
+
+	public function dbJoinMN($table, $select = null)
+	{
+
+		$this->hooks['POST'][] = array(
+		    'type' => 'JOINMN',
+		    'arg' => $table,
+		    'select' => $select
+		);
+	}
+
+	public function dbJoin($table, $select = null)
+	{
+		$this->hooks['PRE'][] = array(
+		    'type' => 'JOIN',
+		    'arg' => $table,
+		    'select' => $select
+		);
+	}
+
+	/**
+	 * Funkce na obslouzeni PRE hooku a zavolani spravnych funkci
+	 * @param type $result
+	 * @return boolean
+	 */
+	private function proceedPreProcessing()
+	{
+		$hooks = $this->hooks['PRE'];
+		$hooks = array_reverse( $hooks );
+		if ( count( $hooks ) == 0 )
+			return false;
+
+		foreach ( $hooks as $process )
+		{
+			switch ($process['type'])
+			{
+				case 'JOIN':
+					$this->proceedJoinConnections( $process );
+					break;
+				case 'SELECT':
+					$this->proceedSelectHook();
+					break;
+			}
+		}
+	}
+
+	/**
+	 * Funkce na obslouzeni POST hooku a zavolani spravnych funkci
+	 * @param type $result
+	 * @return boolean
+	 */
+	private function proceedPostProcessing(&$result)
+	{
+		$hooks = $this->hooks['POST'];
+
+		if ( count( $hooks ) == 0 )
+			return false;
+
+		foreach ( $hooks as $process )
+		{
+			switch ($process['type'])
+			{
+				case 'JOINMN':
+					$this->proceedJoinMNConnections( $process, $result );
+					break;
+			}
+		}
+	}
+
+	/**
+	 * Prida seznam sloupcu, ktery se vyfiltruji. Aplikuji se jako posledni vec pred dotazem.
+	 * Diky tomu se spravne naformatuje i join a neztrati se zadny sloupce.
+	 * @param type $columns
+	 * @param type $overwrite - predesle selecty se vynuluji
+	 * @param type $add_prefix - prida ke sloupcum i prefix
+	 * 	- TRUE = prida prefix s touto tabulkou
+	 * 	- FALSE = neprida prefix ke sloupcum
+	 * 	- JINA HODNOTA (String) = prida se presne tato hodnota
+	 * @return \DML
+	 */
+	public function select($columns, $overwrite = false, $add_prefix = false)
+	{
+		if ( !is_array( $columns ) )
+		{
+			$columns = explode( ',', $columns );
+
+			foreach ( $columns as &$col )
+			{
+				$col = trim( $col, ' ' );
+			}
+		}
+		if ( $overwrite )
+			$this->select = $columns;
+		else
+		{
+			$this->select = array_merge( $this->select, $columns );
+			$this->select = array_unique( $this->select );
+		}
+
+		if ( $add_prefix != FALSE )
+			$this->prepareSelect( $this->select, $add_prefix == true ? $this->name : $add_prefix  );
+
+		return $this;
 	}
 
 	/**
 	 *  Vrati pocet radku v tabulce
 	 */
-	protected function count_rows()
+	protected function dbCountRows()
 	{
 		$this->db->select( 'COUNT(*) as pocet', FALSE );
 		$result = $this->get_one();
@@ -219,77 +327,66 @@ abstract class DML extends CI_Model
 	/**
 	 * Tato funkce automaticky rozeznava, jestli ma provest insert nebo update.
 	 * 
-	 * Pokud je pres fetch_data prenesena 
+	 * Pokud je pres fetchData prenesena ID hodnota, pak se provede update,
+	 * jinak save()
 	 * @return boolean 
 	 */
 	protected function save()
 	{
-		//= pokud neni cachovani, podiva se jestli case existuje
-		//= pokud ne, tak se vytvori nova
-		if ( !$this->table_info->is_columns_cached() )
-		{
-			if ( $this->get_cached_table_info() == false )
-			{
-				$this->build_table();
-			}
-		}
 		if ( $this->data == null )
 		{
 			$error = new DMLException( DMLException::ERROR_DATA_NULL, DMLException::ERROR_NUMBER_DATA_NULL );
-			$this->error = array(
-				 'message' => $error->getErrorMessage(),
-				 'code' => $error->getCode()
-			);
+			$this->set_error( $error->getErrorMessage(), $error->getCode() );
 			$this->db->_reset_write();
-			$this->delete_all_data();
+			$this->deleteAllData();
 
 			return FALSE;
 		}
 
 		$method_insert = TRUE;
-		if ( isset( $this->data[$this->table_info->primary_column] ) &&
-				  $this->data[$this->table_info->primary_column] !== 0
+		if ( isset( $this->data[$this->tableInfo->primary_column] ) &&
+			   $this->data[$this->tableInfo->primary_column] !== 0
 		)
 			$method_insert = FALSE;
-		if ( $method_insert )
-			$validator = new DMLValidatorInsert();
-		else
-			$validator = new DMLValidatorUpdate();
 
-
-		$validator->set_data( $this->table_info, $this->data );
-		try
+		if ( !$this->disableValidation )
 		{
-			$validator->validate();
-		}
-		catch (DMLException $exc)
-		{
-			$this->error = array(
-				 'message' => $exc->getErrorMessage(),
-				 'code' => $exc->getCode()
-			);
-			$this->db->_reset_write();
-			$this->delete_all_data();
+			if ( $method_insert )
+				$validator = new DMLValidatorInsert();
+			else
+				$validator = new DMLValidatorUpdate();
 
-			return FALSE;
-		}
 
+			$validator->set_data( $this->tableInfo, $this->data );
+			try
+			{
+				$validator->validate();
+			}
+			catch (DMLException $exc)
+			{
+				$this->set_error( $exc->getErrorMessage(), $exc->getCode() );
+				$this->db->_reset_write();
+				$this->delete_all_data();
+
+				return FALSE;
+			}
+		}
 
 		if ( $method_insert )
 		{
 			$this->db->set( $this->data, $this->escape );
-			$this->db->insert( $this->table_info->get_table_name() );
+			$this->db->insert( $this->name );
 			$this->log_operation();
 			$this->save_last_query();
 		}
 		else
 		{
 			//= Nastavi se sql where na primarni sloupec, ktery se nasledne vyjme z data, aby se neduplikoval
-			$this->db->where( $this->table_info->primary_column, $this->data[$this->table_info->primary_column] );
-			unset( $this->data[$this->table_info->primary_column] );
+			$this->db->where( $this->tableInfo->primary_column, $this->data[$this->tableInfo->primary_column] );
+			unset( $this->data[$this->tableInfo->primary_column] );
 
 			$this->db->set( $this->data, $this->escape );
-			$this->db->update( $this->table_info->get_table_name() );
+			$this->db->update( $this->tableInfo->get_table_name() );
 			$this->save_last_query();
 			$this->log_operation();
 		}
@@ -306,53 +403,39 @@ abstract class DML extends CI_Model
 	 */
 	protected function save_batch()
 	{
-		//= pokud neni cachovani, podiva se jestli case existuje
-		//= pokud ne, tak se vytvori nova
-		if ( !$this->table_info->is_columns_cached() )
-		{
-			if ( $this->get_cached_table_info() == false )
-			{
-				$this->build_table();
-			}
-		}
-
 		if ( $this->data == null )
 		{
 			$error = new DMLException( DMLException::ERROR_DATA_NULL, DMLException::ERROR_NUMBER_DATA_NULL );
-			$this->error = array(
-				 'message' => $error->getErrorMessage(),
-				 'code' => $error->getCode()
-			);
+			$this->set_error( $error->getErrorMessage(), $error->getCode() );
 			$this->db->_reset_write();
 			$this->delete_all_data();
 			return FALSE;
 		}
 
 		$validator = new DMLValidatorInsert();
-
-		try
+		if ( !$this->disableValidation )
 		{
-			foreach ( $this->data as $data )
+			try
 			{
-				$validator->set_data( $this->table_info, $data );
-				$validator->validate();
+				foreach ( $this->data as $data )
+				{
+					$validator->set_data( $this->tableInfo, $data );
+					$validator->validate();
+				}
+			}
+			catch (DMLException $exc)
+			{
+				$this->set_error( $exc->getErrorMessage(), $exc->getCode() );
+				$this->db->_reset_write();
+				$this->deleteAllData();
+				return FALSE;
 			}
 		}
-		catch (DMLException $exc)
-		{
-			$this->error = array(
-				 'message' => $exc->getErrorMessage(),
-				 'code' => $exc->getCode()
-			);
-			$this->db->_reset_write();
-			$this->delete_all_data();
-			return FALSE;
-		}
 
-		$this->db->insert_batch( $this->table_info->get_table_name(), $this->data );
+		$this->db->insert_batch( $this->tableInfo->get_table_name(), $this->data );
 		$this->save_last_query();
 		$this->log_operation();
-		$this->delete_all_data();
+		$this->deleteAllData();
 		return TRUE;
 	}
 
@@ -364,19 +447,10 @@ abstract class DML extends CI_Model
 	 */
 	public function update()
 	{
-		//= pokud neni cachovani, podiva se jestli cache existuje
-		//= pokud ne, tak se vytvori nova
-		if ( !$this->table_info->is_columns_cached() )
-		{
-			if ( $this->get_cached_table_info() == false )
-			{
-				$this->build_table();
-			}
-		}
-		if ( $this->escape )
+		if ( !$this->disableValidation )
 		{
 			$validator = new DMLValidatorUpdate();
-			$validator->set_data( $this->table_info, $this->data );
+			$validator->set_data( $this->tableInfo, $this->data );
 
 			try
 			{
@@ -384,98 +458,20 @@ abstract class DML extends CI_Model
 			}
 			catch (DMLException $exc)
 			{
-				$this->error = array(
-					 'message' => $exc->getErrorMessage(),
-					 'code' => $exc->getCode()
-				);
+				$this->set_error( $exc->getErrorMessage(), $exc->getCode() );
 				$this->db->_reset_write();
 				return FALSE;
 			}
 		}
-		
+
 		$this->db->set( $this->data, $this->escape );
-		$this->db->update( $this->table_info->get_table_name() );
+		$this->db->update( $this->tableInfo->get_table_name() );
 		$this->save_last_query();
 		$this->log_operation();
-		$this->delete_all_data();
+		$this->deleteAllData();
 		return $this->db->affected_rows();
 	}
 
-	/**
-	 * Aktivuje pro nasledujici select 
-	 * @param DMLCache $cache 
-	 */
-	protected function query_cache_activation(DMLCache $cache)
-	{
-		$this->query_cache = $cache;
-		$this->query_cache->assignCache( $this->cache );
-		$this->query_cache->set_name( $this->table_info->get_table_name() );
-	}
-
-	/**
-	 * Invaliduje cache s danymi tagy. Vhodne pri pouziti 
-	 * updatu a insertu.<br>
-	 * Pri invalidovani bez tagu se invalidujou vsechny
-	 * case spojene s timto modelem
-	 * @param DMLCache $cache 
-	 * @param boolean $cache_group - invaliduje vsechny cache, ktery maji dane tagy
-	 */
-	protected function query_cache_invalide(DMLCache $cache, $cache_group = FALSE)
-	{
-		$this->query_cache_activation( $cache );
-		$this->query_cache->invalide( $cache_group );
-		$this->clear_query_cache();
-		return $this;
-	}
-
-	/**
-	 * Vymaze cachovani dotazu
-	 *  - vyuziva se po selectu, aby se cachovani neaplikovalo na dalsi dotaz
-	 */
-	private function clear_query_cache()
-	{
-		$this->query_cache = null;
-	}
-
-	private function get_table_spec()
-	{
-		//if ($this->table_info)
-	}
-
-	/**
-	 * Precte si to pozadavky z tabulky, ulozi do cache a  
-	 */
-	private function build_table()
-	{
-		//= Aby se provedl dotaz, musi se momentalni ulozit do promenne a smazat.
-		//= Pote se zase obnovi. Tim nedojde k naruseni dotazu.
-		$stored_session = $this->db->store_session();
-		$this->db->_reset_select();
-
-
-		$this->db->select( 'COLUMN_NAME, DATA_TYPE, IS_NULLABLE,  CHARACTER_MAXIMUM_LENGTH,COLUMN_KEY' )
-				  ->where( 'table_name', $this->table_info->get_table_name() )
-				  ->where( 'table_schema', $this->db->database )
-				  ->group_by( 'COLUMN_NAME' )
-				  ->order_by( 'ORDINAL_POSITION' );
-		$result = $this->db->get( 'INFORMATION_SCHEMA.COLUMNS' );
-		$this->save_last_query();
-
-		if ( $result->num_rows() == 0 )
-			show_error( 'DML: Pri parsovani tabulky vznikla chyba: tabulka ' . $this->table_info->get_table_name() . ' neexistuje.' );
-
-		foreach ( $result->result() as $column )
-		{
-			$this->table_info->add_column( $column->COLUMN_NAME, $column->DATA_TYPE, $column->CHARACTER_MAXIMUM_LENGTH, $column->IS_NULLABLE == "YES" ? true : false, $column->COLUMN_KEY == DMLTable::COL_PRIMARY ? true : false  );
-		}
-
-		$result = $this->cache->write( $this->table_info, $this->cache_prefix . 'table_' . $this->table_info->get_table_name() );
-
-		//= Navraceni stareho dotazu, ktery se muze po vytvoreni cache zpracovat
-		$this->db->restore_session( $stored_session );
-
-		return $this;
-	}
 
 	/**
 	 * Vrati hodnoty a pripravi tridu pro dalsi
@@ -484,33 +480,53 @@ abstract class DML extends CI_Model
 	public function clear()
 	{
 		$this->data = null;
-
+		$this->disableValidation = false;
 		return $this;
 	}
 
 	/**
-	 * Vrati zacachovane informace o tabulce
-	 * @return DMLTable - pri neuspechu vraci FALSE 
+	 * Vsechny budouci dotazy se nastavi na transakci
+	 * (pro uspesnou operaci s databazi se musi po 
+	 * skonceni vsech potrenych dotazu ukoncit "stop_transaction")
+	 * Pokud se neco nepovede, vsechno se navrati funkci "rollback_transaction"
+	 * POZOR!: jedna se o singleton, pokud v jedne instanci povolite transakce,
+	 * pote se to projevi i v jinych instancich
+	 * @return \DML
 	 */
-	public function get_cached_table_info()
+	public function start_transaction()
 	{
-		$a = $this->cache->get( $this->cache_prefix . 'table_' . $this->table_info->get_table_name() );
-		if ( $a !== FALSE )
-		{
-			$this->table_info = $a;
-			return $this->table_info;
-		}
-		else
-			return false;
+		$this->db->trans_begin();
+		return $this;
 	}
 
+	/**
+	 * Odsouhlasi transakci a vse se zapise do databaze
+	 * @return \DML
+	 */
+	public function stop_transaction()
+	{
+		$this->db->trans_commit();
+		return $this;
+	}
+
+	/**
+	 * Neodsouhlasi transakci a vse bude navraceno zpet
+	 * @return \DML
+	 */
+	public function rollback_transaction()
+	{
+		$this->db->trans_rollback();
+		return $this;
+	}
+
+	
 	/**
 	 * Vymaze cachovane informace o tabulce
 	 * Pri dalsim updatu / insertu se znova vytvori 
 	 */
 	public function cache_table_clear()
 	{
-		$this->cache->delete( $this->cache_prefix . 'table_' . $this->table_info->get_table_name() );
+		$this->cache->delete( $this->cache_prefix . 'table_' . $this->tableInfo->get_table_name() );
 	}
 
 	public function cache_clear()
@@ -524,44 +540,16 @@ abstract class DML extends CI_Model
 	}
 
 	/**
-	 * Vypise informace o tabulce (debug usefull)
-	 * @return string 
+	 * Ulozi do historie posledni dotaz na databazi 
 	 */
-	public function get_table_info_string()
+	private function save_last_query()
 	{
-		$string = "";
-		$this->table_info = $this->get_cached_table_info();
-		if ( $this->table_info->is_columns_cached() )
-		{
-			$string .= "<ul>" . PHP_EOL;
-			foreach ( $this->table_info->get_columns() as $column_name => $column )
-			{
-				$string .= "<li><strong>$column_name</strong> - type: " . $column['type'] .
-						  ($column['length'] > 0 ? "(" . $column['length'] . ")" : "") .
-						  " null " . ($column['is_nullable'] ? "YES" : "NO") .
-						  " primary " . ($column['is_primary'] ? "YES" : "NO");
-			}
-			$string .= "</ul>";
-		}
-		else
-		{
-			$string = "table " . $this->table_info->get_table_name() . " is not cached.";
-		}
-
-		return $string;
+		$this->last_query[] = $this->db->last_query();
 	}
 
 	/**
-	 * Vraci poslední použitý dotaz
-	 * @return String 
-	 */
-	public function last_query()
-	{
-		return $this->get_queries_history( count( $this->last_query ) - 1 );
-	}
-
-	/**
-	 * Vrati ulozeny dotaz s databazi dle indexu
+	 * Vrati ulozeny dotaz s databazi dle indexu.
+	 * Pokud parametr neni zadan, vrati se POSLEDNI query
 	 * @param int $index - Pokud se $index = -1, pote se vrati
 	 * cela historie, jinak se vrati dle idnexu. Pokud pod danym
 	 * indexem nic neni, vrati se null.
@@ -575,7 +563,71 @@ abstract class DML extends CI_Model
 			return $this->last_query;
 		}
 
-		return isset( $this->last_query[$index] ) ? $this->last_query : null;
+		return isset( $this->last_query[$index] ) ? $this->last_query[$index] : null;
+	}
+
+	/**
+	 * Vrati hodnotu, kterou jste do tridy vlozili pomoci fetch_data() nebo
+	 * add_data().
+	 * @param String $data_name - definovani hodnoty, kterou chcete navratit
+	 * @return String / null
+	 */
+	public function getDataValue($data_name)
+	{
+		return isset( $this->data[$data_name] ) ? $this->data[$data_name] : null;
+	}
+
+	/**
+	 * Smaze z vlozenych dat urcenych pro insert nebo update hodnotu.
+	 * @param String $data_name - nazev polozkys
+	 * @return \DML 
+	 */
+	public function deleteDataByName($data_name)
+	{
+		unset( $this->data[$data_name] );
+		return $this;
+	}
+
+	/**
+	 * Vymaze vsechny data, vlozena do modelu za ucelem ulozeni nebo upraveni.
+	 * Vola se autoamticky po volani funkce save, save_batch a update.
+	 * Automaticky se zas nastavi escapovani hodnot
+	 * @return \DML 
+	 */
+	public function deleteAllData()
+	{
+		$this->data = array();
+		$this->escape = TRUE;
+		return $this;
+	}
+	
+	/**
+	 * Prida limit k dotazu.
+	 * @param type $page - jaka stranka? Pocita se od jednicky
+	 * @param type $per_page - kolik dotazu na stranku se ma zobrazit
+	 * @return \DML
+	 */
+	public function page($page,$per_page = 10)
+	{
+			$this->db->limit($per_page, $per_page * ($page - 1) );
+			return $this;
+	}
+	
+
+	/**
+	 * Zapise chybu
+	 * @param int $code
+	 * @param String $message
+	 * @return \DML 
+	 */
+	protected function set_error($message, $code = DMLException::ERROR_NUMBER_GENERIC)
+	{
+		$this->error = array(
+		    'message' => $message,
+		    'code' => $code
+		);
+
+		return $this;
 	}
 
 	/**
@@ -597,64 +649,10 @@ abstract class DML extends CI_Model
 	}
 
 	/**
-	 * Vrati hodnotu, kterou jste do tridy vlozili pomoci fetch_data() nebo
-	 * add_data().
-	 * @param String $data_name - definovani hodnoty, kterou chcete navratit
-	 * @return String / null
+	 * Do consoleLoggeru prida dalsi radek z db
+	 * @param type $result
+	 * @return boolean
 	 */
-	public function get_data_value($data_name)
-	{
-		return isset( $this->data[$data_name] ) ? $this->data[$data_name] : null;
-	}
-
-	/**
-	 * Smaze z vlozenych dat urcenych pro insert nebo update hodnotu.
-	 * @param String $data_name - nazev polozkys
-	 * @return \DML 
-	 */
-	public function delete_data_by_name($data_name)
-	{
-		unset( $this->data[$data_name] );
-		return $this;
-	}
-
-	/**
-	 * Vymaze vsechny data, vlozena do modelu za ucelem ulozeni nebo upraveni.
-	 * Vola se autoamticky po volani funkce save, save_batch a update.
-	 * Automaticky se zas nastavi escapovani hodnot
-	 * @return \DML 
-	 */
-	public function delete_all_data()
-	{
-		$this->data = array();
-		$this->escape = TRUE;
-		return $this;
-	}
-
-	/**
-	 * Ulozi do historie posledni dotaz na databazi 
-	 */
-	private function save_last_query()
-	{
-		$this->last_query[] = $this->db->last_query();
-	}
-
-	/**
-	 * Zapise chybu
-	 * @param int $code
-	 * @param String $message
-	 * @return \DML 
-	 */
-	protected function set_error($message, $code = DMLException::ERROR_NUMBER_GENERIC)
-	{
-		$this->error = array(
-			 'message' => $message,
-			 'code' => $code
-		);
-
-		return $this;
-	}
-
 	protected function log_operation($result = null)
 	{
 		if ( ENVIRONMENT != 'development' )
@@ -669,70 +667,215 @@ abstract class DML extends CI_Model
 		$par_func[1] = (isset( $callers[3]['class'] ) ? $callers[3]['class'] . "::" : "") . $callers[3]['function'] . "() " . (isset( $callers[3]['line'] ) ? "ln " . $callers[3]['line'] : "");
 
 		$this->ci->consolelogger->set_namespace( "database" )
-				  ->set_data( "query", $this->db->last_query() )
-				  ->set_data( 'parent_function', $par_func )
-				  ->set_data( 'elapsed_time', $this->db->elapsed_time() )
-				  ->set_data( 'rows', $result == null ? $this->db->affected_rows() : $result->num_rows()  )
-				  ->set_data( 'result', $result == null ? null : $result->result()  )
-				  ->new_row();
+			   ->set_data( "query", $this->db->last_query() )
+			   ->set_data( 'parent_function', $par_func )
+			   ->set_data( 'elapsed_time', $this->db->elapsed_time() )
+			   ->set_data( 'rows', $result == null ? $this->db->affected_rows() : $result->num_rows()  )
+			   ->set_data( 'result', $result == null ? null : $result->result()  )
+			   ->new_row();
 	}
 
+	/**
+	 * Vrati logy
+	 */
 	public function get_logs()
 	{
 		$this->ci->consolelogger->get_data_from_namespace( 'database' );
 	}
 
 	/**
-	 * Tato funkce vypne (TRUE) nebo zapne (FALSE)
-	 * escapovani vlozenych dat, ktere se spracuji
-	 * ve funkci save() nebo update()
-	 * @param boolean $disable
-	 * @return \DML 
+	 * Povoli nebo zakaze validaci pri update a save
+	 * @param type $disable
+	 * @return \DML
 	 */
-	public function escape_values($enable = TRUE)
+	public function disableValidation($disable = true)
 	{
-		$this->escape = $enable;
+		$this->disableValidation = $disable;
 		return $this;
 	}
-	
+
+	/**
+	 * Kolik radku bylo ovlivneno prikazem
+	 * save() a update();
+	 * @return type
+	 */
 	public function affected_rows()
 	{
 		return $this->db->affected_rows();
 	}
-	
+
 	/**
-	 * Vsechny budouci dotazy se nastavi na transakci
-	 * (pro uspesnou operaci s databazi se musi po 
-	 * skonceni vsech potrenych dotazu ukoncit "stop_transaction")
-	 * Pokud se neco nepovede, vsechno se navrati funkci "rollback_transaction"
-	 * POZOR!: jedna se o singleton, pokud v jedne instanci povolite transakce,
-	 * pote se to projevi i v jinych instancich
-	 * @return \DML
+	 * Vnori selekty do databazove vrstvy
 	 */
-	public function start_transaction()
+	private function proceedSelectHook()
 	{
-		$this->db->trans_begin();
-		return $this;
+		/*
+		 * Pokud neni zadny select, vytvori se TABLE_NAME.*
+		 */
+		if ( empty( $this->select ) )
+			$this->db->select( $this->name . '.*' );
+
+		else
+		{
+			FB::info( $this->select, 'pridavam select' );
+			$this->db->select( $this->select );
+		}
+	}
+
+	/**
+	 * Pripravi Join na pozadovanou tabulku
+	 * @param type $process
+	 */
+	private function proceedJoinConnections($process)
+	{
+		$tableName = $this->name;
+		/**
+		 * Zjistim, jakej sloupecek vlastne musim propojit
+		 */
+		if ( ($referencingColumn = $this->tableInfo->has_this_table_referencing( $process['arg'] )) == FALSE )
+		{
+			show_error( 'Join(): Tabulka ' . $tableName . ' neodkazuje na tabulku ' . $process['arg'] );
+		}
+		/**
+		 * Nyni musime ziskat nazev sloupecku, na ktery tabulka odkazuje
+		 */
+		$targetTableInfo = DMLBuilder::loadTableInfo( $process['arg'] );
+		$targetColumn = $targetTableInfo->has_foreign_table_referencing( $tableName );
+
+		//= Nyni poresime select
+		if ( is_null( $process['select'] ) )
+		{
+			$columns = $targetTableInfo->get_columns_names();
+			unset( $columns[$targetColumn] ); //= Nemusime znova stahovat IDcko, ktere uz je v cizim klici
+		}
+		else
+			$columns = $process['select'];
+
+		//= Nemame jistotu, ze se nejake sloupce nebudou prekryvat, radsi 
+		//= vsechny vlozeny zprefixujeme jejich tabulkou
+		$this->select = $this->prepareSelect( $this->select, $this->name );
+
+
+		$columns = $this->prepareSelect( $columns, $process['arg'], $process['arg'] . '_' );
+		$this->db->select( $columns )
+			   ->join( $process['arg'], $process['arg'] . '.' . $targetColumn . ' = ' . $tableName . '.' . $referencingColumn );
+	}
+
+	/**
+	 * Pripravi MN Join
+	 * @param type $hook
+	 */
+	private function proceedJoinMNConnections($hook, &$result)
+	{
+		FB::info( $result, 'RESULT' );
+		$mainTable = $hook['arg'];
+		$dataWhere = array();
+		$myTables = $this->tableInfo->get_incoming_foreign_data();
+		$foreignTableInfo = DMLBuilder::loadTableInfo( $mainTable );
+		foreach ( $myTables as $column => $tables )
+		{
+			//= Musime ziskat vsechny WHERE argumenty z resultu
+			foreach ( $result as $rows )
+			{
+				if ( !isset( $rows->$column ) )
+					show_error( 'proceedJoinMNConnections(): v SELECTu neni sloupec ' . $column );
+				$dataWhere[] = $rows->$column;
+			}
+			foreach ( $tables as $table )
+			{
+
+				$targetColumn = $this->tableInfo->get_table_name() . '_' . $column;
+				$targetTable = $table;
+				// Nyni vim co hledat, jdu na to!
+				//= Mrknu do BOOKS - stahnu vscnhy IN
+				//= je tam books_list?
+				if ( ($mainColumn = $foreignTableInfo->has_foreign_table_referencing( $targetTable )) !== false )
+				{
+					//= Musime vytvorit radnej select
+					$select = $this->prepareSelect( $hook['select'], $mainTable );
+					$select[] = $targetColumn;
+
+					//= Vime, ze tato tabulka ($targetTable) je prostrednikem!!
+					$foreignResult = $this->db->join( $targetTable, $targetTable . '.' . $targetColumn . '=' . $this->tableInfo->get_table_name() . '.' . $column )
+						   ->join( $mainTable, $mainTable . '.' . $mainColumn . '=' . $targetTable . '.' . $mainTable . '_' . $mainColumn )
+						   ->select( $select )
+						   ->where_in( $this->tableInfo->get_table_name() . '.' . $column, $dataWhere )
+						   ->get( $this->tableInfo->get_table_name() );
+					$this->log_operation( $foreignResult );
+
+					break 2;
+				}
+			}
+			show_error( 'dbJoinMN(): Neexistuje zadna MN reference z tabulky ' . $this->tableInfo->get_table_name() . ' na tabulku ' . $mainTable );
+		}
+		//= Nyni musime sjednotit foreignResult s resultem
+		$foreignResult = $foreignResult->result();
+		foreach ( $result as &$row )
+		{
+			foreach ( $foreignResult as $k => &$r )
+			{
+				if ( $row->$column == $r->$targetColumn )
+				{
+					unset( $r->$targetColumn );
+					$row->{$mainTable}[] = $r;
+					unset( $foreignResult[$k] );
+				}
+			}
+
+			if ( !isset( $row->{$mainTable} ) )
+				$row->{$mainTable} = false;
+		}
+		FB::info( $result );
 	}
 	
 	/**
-	 * Odsouhlasi transakci a vse se zapise do databaze
-	 * @return \DML
+	 * Vsem selektum to prida prefix a vrati array
+	 * @param Array/String $select
+	 * @param String $tablePrefix
+	 * @return Array
 	 */
-	public function stop_transaction()
+	private function prepareSelect($select, $tablePrefix, $AS_prefix = null)
 	{
-		$this->db->trans_commit();
-		return $this;
+
+		if ( $select == null )
+			return array($tablePrefix . '.*');
+
+		if ( !is_array( $select ) )
+			$select = explode( ',', $select );
+		foreach ( $select as &$s )
+		{
+			$s = (strpos( $s, '.' ) === FALSE ? $tablePrefix . '.' . trim( $s, ' ' ) : $s) . ($AS_prefix != null ? ' AS ' . $AS_prefix . $s : '');
+		}
+
+		return $select;
 	}
-	
+
 	/**
-	 * Neodsouhlasi transakci a vse bude navraceno zpet
-	 * @return \DML
+	 * Vypise informace o tabulce (debug usefull)
+	 * @return string 
+	 * @debug-only
 	 */
-	public function rollback_transaction()
+	public function get_table_info_string()
 	{
-		$this->db->trans_rollback();
-		return $this;
+		$string = "";
+		if ( $this->tableInfo->is_columns_cached() )
+		{
+			$string .= "<ul>" . PHP_EOL;
+			foreach ( $this->tableInfo->get_columns() as $column_name => $column )
+			{
+				$string .= "<li><strong>$column_name</strong> - type: " . $column['type'] .
+					   ($column['length'] > 0 ? "(" . $column['length'] . ")" : "") .
+					   " null " . ($column['is_nullable'] ? "YES" : "NO") .
+					   " primary " . ($column['is_primary'] ? "YES" : "NO");
+			}
+			$string .= "</ul>";
+		}
+		else
+		{
+			$string = "table " . $this->tableInfo->get_table_name() . " is not cached.";
+		}
+
+		return $string;
 	}
 
 }

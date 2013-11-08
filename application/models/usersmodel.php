@@ -56,13 +56,13 @@ class UsersModel extends DML
 	public function get_user_by_id($id)
 	{
 		$this->db->where( "id", $id );
-		return $this->get_one();
+		return $this->dbGetOne();
 	}
 
 	public function get_user_by_username($username)
 	{
 		$this->db->where( "username", $username );
-		return $this->get_one();
+		return $this->dbGetOne();
 	}
 
 	public function count_users($facebook_users = FALSE)
@@ -76,7 +76,7 @@ class UsersModel extends DML
 	{
 		$this->db->select( "id" );
 		$this->db->where( $type, $value );
-		return $this->get_one() == false ? true : false;
+		return $this->dbGetOne() == false ? true : false;
 	}
 
 	public function search_user($search_term)
@@ -85,7 +85,7 @@ class UsersModel extends DML
 				  ->or_like( 'LOWER(username)', strtolower( $search_term ) )
 				  ->select( 'username,email,id' )
 				  ->limit( 5 );
-		return $this->get();
+		return $this->dbGet();
 	}
 
 	public function login_via_facebook($facebook_id)
@@ -93,7 +93,7 @@ class UsersModel extends DML
 		$this->load->library( 'session' );
 		$this->db->select( "username, email, id" );
 		$this->db->where( "fcb_id", $facebook_id );
-		$result = $this->get_one();
+		$result = $this->dbGetOne();
 		if ( $result == false )
 			return false;
 
@@ -121,15 +121,15 @@ class UsersModel extends DML
 
 	public function activate_user($id, $activate = TRUE)
 	{
-		$this->add_data( "activated", $activate ? 1 : 0  )
-				  ->add_data( "id", $id );
+		$this->addData( "activated", $activate ? 1 : 0  )
+				  ->addData( "id", $id );
 		return $this->save();
 	}
 
 	public function change_role($id, $role)
 	{
-		return $this->add_data( "role", $role )
-							 ->add_data( "id", $id )
+		return $this->addData( "role", $role )
+							 ->addData( "id", $id )
 							 ->save();
 	}
 
@@ -197,7 +197,7 @@ class UsersModel extends DML
 		if ($page != false)
 			$this->db->limit( self::ROWS_PER_PAGE, self::ROWS_PER_PAGE * ($page - 1) );
 		
-		return $this->get();
+		return $this->dbGet();
 	}
 
 	function filter_users($keywords, $where_array, $page = 1, $just_count_it = false)
@@ -218,7 +218,7 @@ class UsersModel extends DML
 		
 		$this->db->limit( self::ROWS_PER_PAGE, self::ROWS_PER_PAGE * ($page - 1 ) );
 
-		return $this->get();
+		return $this->dbGet();
 	}
 
 	/**
@@ -232,7 +232,7 @@ class UsersModel extends DML
 		$this->db->where( "id", $id )
 				  ->select( "fcb_id" );
 
-		$result = $this->get_one();
+		$result = $this->dbGetOne();
 		return $result == FALSE ? FALSE : $result->fcb_id;
 	}
 
@@ -267,15 +267,15 @@ class UsersModel extends DML
 		}
 
 		$this->db->where( "fcb_id", $fcb_id_official );
-		$result = $this->get_one();
+		$result = $this->dbGetOne();
 
 		if ( $result != false )
 		{
 			$this->db->where( "id", $target_id );
-			$this->add_data( "fcb_id", $fcb_id_official );
-			$this->add_data( "surname", $result->surname );
+			$this->addData( "fcb_id", $fcb_id_official );
+			$this->addData( "surname", $result->surname );
 			if ( $result->email != null )
-				$this->add_data( "email", $result->email );
+				$this->addData( "email", $result->email );
 
 
 			$status = $this->update();
@@ -293,7 +293,7 @@ class UsersModel extends DML
 		if ( $status != FALSE )
 		{
 			$this->db->where( "id", $source_id );
-			$this->db->delete( $this->table_info->get_table_name() );
+			$this->db->delete( $this->tableInfo->get_table_name() );
 			return TRUE;
 		}
 		else
@@ -312,13 +312,13 @@ class UsersModel extends DML
 	{
 
 		$this->db->where( 'LOWER(email)=', strtolower( $email ) );
-		return $this->get_one();
+		return $this->dbGetOne();
 	}
 
 	function get_user_by_facebook_id($facebook_id)
 	{
 		$this->db->where( self::FACEBOOK_ID_CHECK, $facebook_id );
-		return $this->get_one();
+		return $this->dbGetOne();
 	}
 
 	/**
@@ -332,14 +332,14 @@ class UsersModel extends DML
 	 */
 	function update_login_info($user_id, $record_ip, $record_time, $type = self::ID_CHECK)
 	{
-		$this->add_data( "new_password_key", self::NULL_VALUE );
-		$this->add_data( "new_password_requested", self::NULL_VALUE );
+		$this->addData( "new_password_key", null );
+		$this->addData( "new_password_requested", null );
 
 
 		if ( $record_ip )
-			$this->add_data( "last_ip", $this->input->ip_address() );
+			$this->addData( "last_ip", $this->input->ip_address() );
 		if ( $record_time )
-			$this->add_data( "last_login", date( 'Y-m-d H:i:s' ) );
+			$this->addData( "last_login", date( 'Y-m-d H:i:s' ) );
 
 		if ( $type == self::ID_CHECK )
 			$this->db->where( 'id', $user_id );
@@ -358,7 +358,7 @@ class UsersModel extends DML
 	public function login($login, $column)
 	{
 		$this->db->where( 'LOWER(' . $column . ')=', strtolower( $login ) );
-		return $this->get_one();
+		return $this->dbGetOne();
 	}
 
 	/**
@@ -371,8 +371,8 @@ class UsersModel extends DML
 	 */
 	public function change_password($user_id, $password)
 	{
-		$this->add_data( "id", $user_id )
-				  ->add_data( "password", $password );
+		$this->addData( "id", $user_id )
+				  ->addData( "password", $password );
 
 		$this->db->where( "id", $user_id );
 		return $this->save();
@@ -380,8 +380,8 @@ class UsersModel extends DML
 
 	public function change_password_safe($user_id, $new_password, $old_password)
 	{
-		$this->add_data( "id", $user_id )
-				  ->add_data( "password", $new_password );
+		$this->addData( "id", $user_id )
+				  ->addData( "password", $new_password );
 
 		$this->db->where( "id", $user_id )
 				  ->where( "password", $old_password );
@@ -394,7 +394,7 @@ class UsersModel extends DML
 
 	public function change_value($id, $column, $value)
 	{
-		return $this->add_data( $column, $value )
+		return $this->addData( $column, $value )
 							 ->update( $id, self::ID_CHECK );
 	}
 

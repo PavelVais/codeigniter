@@ -36,7 +36,7 @@ class VariablesModel extends DML
 	public function get_all_variables($user_id)
 	{
 		$this->db->where( 'user_id', $user_id );
-		if ( !$result = parent::get() )
+		if ( !$result = parent::dbGet() )
 			return false;
 
 		foreach ( $result as &$r )
@@ -71,7 +71,7 @@ class VariablesModel extends DML
 		}
 
 		// Pokud hodnota neexistuje, vlozi se, jinak se updatne
-		$result = $this->get( $name, $user_id );
+		$result = $this->dbGet( $name, $user_id );
 		$input_method = ($result === false ? 'save' : 'update');
 
 		//= Podiva se, jestli to zacina + nebo -.
@@ -92,13 +92,13 @@ class VariablesModel extends DML
 			}
 		}
 
-		$this->add_data( 'name', $name );
-		$this->add_data( is_numeric( $new_value ) ? 'value_int' : 'value_string', $new_value );
-		$this->add_data( is_numeric( $new_value ) ? 'value_string' : 'value_int', self::NULL_VALUE );
+		$this->addData( 'name', $name );
+		$this->addData( is_numeric( $new_value ) ? 'value_int' : 'value_string', $new_value );
+		$this->addData( is_numeric( $new_value ) ? 'value_string' : 'value_int', null );
 
 		if ( $this->without_user == FALSE )
 			if ( User::is_logged_in() || $user_id != null )
-				$this->add_data( 'user_id', $user_id == null ? \User::get_id() : intval( $user_id )  );
+				$this->addData( 'user_id', $user_id == null ? \User::get_id() : intval( $user_id )  );
 			else
 			{
 				$this->set_error( 'Proměnná se nemohla uložit. K systému není přihlášen žádný uživatel, ke kterému by se proměnná zapsala.', 500 );
@@ -136,7 +136,7 @@ class VariablesModel extends DML
 		if ( $this->without_user == FALSE )
 			$this->db->where( 'user_id', $user_id == null ? \User::get_id() : $user_id  );
 
-		$result = parent::get_one();
+		$result = parent::dbGetOne();
 		if ( $result == false )
 			return FALSE;
 
@@ -163,7 +163,7 @@ class VariablesModel extends DML
 		else
 			$this->db->where( 'user_id', null );
 
-		$result = $this->db->delete( $this->table_info->get_table_name() );
+		$result = $this->db->delete( $this->tableInfo->get_table_name() );
 		$this->log_operation( $result );
 
 		return $result;
@@ -183,7 +183,7 @@ class VariablesModel extends DML
 		if ( $this->without_user == FALSE )
 			$this->db->where( 'user_id', $user_id == null ? \User::get_id() : $user_id  );
 
-		$this->add_data( "name", $new_name )
+		$this->addData( "name", $new_name )
 				  ->update();
 		return $this->affected_rows() >= 1 ? TRUE : FALSE;
 	}
@@ -204,7 +204,7 @@ class VariablesModel extends DML
 
 		$this->db->where( 'user_id', $user_id );
 
-		$result = $this->db->delete( $this->table_info->get_table_name() );
+		$result = $this->db->delete( $this->tableInfo->get_table_name() );
 		$this->log_operation( $result );
 
 		return $result;

@@ -70,9 +70,9 @@ class ConfirmModel extends DML
 			 'hash' => $hash,
 			 'expiration' => DMLHelper::int2date( $exp )
 		);
-		$this->fetch_data( $data );
+		$this->fetchData( $data );
 		if ( $group_name != null )
-			$this->add_data( array("group" => $group_name) );
+			$this->addData( array("group" => $group_name) );
 
 
 		if ( $tags_check && !empty( $this->tags ) )
@@ -82,13 +82,13 @@ class ConfirmModel extends DML
 				$this->db->where( "group", $group_name );
 			$this->db->where( 'disabled', 0 );
 
-			if ( $this->get_one() != FALSE )
+			if ( $this->dbGetOne() != FALSE )
 			{
 				$this->set_error( "Pro tag(y) " . $this->_prepare_tags() . " již potvrzovací kód existuje.", DMLException::ERROR_NUMBER_DUPLICATED );
 				return FALSE;
 			}
 
-			$this->add_data( array('tags' => $this->_prepare_tags()) );
+			$this->addData( array('tags' => $this->_prepare_tags()) );
 		}
 
 
@@ -136,7 +136,7 @@ class ConfirmModel extends DML
 	{
 		$this->db->where( "hash", $hash );
 		$this->_check_group_where();
-		$result = $this->get_one();
+		$result = $this->dbGetOne();
 
 		if ( $result == FALSE )
 			return FALSE;
@@ -183,7 +183,7 @@ class ConfirmModel extends DML
 	public function disable_confirm($id)
 	{
 		$this->db->where( "id", $id );
-		$this->add_data( "disabled", 1 );
+		$this->addData( "disabled", 1 );
 
 		$this->_check_group_where();
 
@@ -201,13 +201,13 @@ class ConfirmModel extends DML
 
 		$this->_check_group_where();
 
-		return $this->db->delete( $this->table_info->get_table_name() );
+		return $this->db->delete( $this->name );
 	}
 	
 	public function get_confirm_by_tags($tags)
 	{
 		$this->db->where("tags",$tags);
-		return $this->get();
+		return $this->dbGet();
 	}
 
 	/**
@@ -223,7 +223,7 @@ class ConfirmModel extends DML
 			$this->db->where( 'tags', $this->_prepare_tags() );
 
 		$this->_check_group_where();
-		$this->db->delete( $this->table_info->get_table_name() );
+		$this->db->delete( $this->name );
 
 		return $this;
 	}

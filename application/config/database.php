@@ -41,10 +41,10 @@
 $active_group = 'default';
 $active_record = TRUE;
 
-$db['default']['hostname'] = 'localhost';
-$db['default']['username'] = 'root';
-$db['default']['password'] = '';
-$db['default']['database'] = 'ci_administrace';
+$db['default']['hostname'] = 'wm40.wedos.net';
+$db['default']['username'] = 'w48125_ci';
+$db['default']['password'] = 'bqTughPg';
+$db['default']['database'] = 'd48125_ci';
 $db['default']['dbdriver'] = 'mysql';
 $db['default']['dbprefix'] = '';
 $db['default']['pconnect'] = TRUE;

@@ -3,27 +3,33 @@
 if ( !defined( 'BASEPATH' ) )
 	exit( 'No direct script access allowed' );
 
-// CodeIgniter i18n library by Jérôme Jaglale
-// http://maestric.com/en/doc/php/codeigniter_i18n
-// version 10 - May 10, 2012
-
-class MY_Lang extends CI_Lang
-{
+/**
+ * Codeigniter i18n library by Jérôme Jaglale
+ * updated by Pavel Vais
+ *
+ */
+class MY_Lang extends CI_Lang {
 	/*	 * ************************************************
 	  configuration
 	 * ************************************************* */
 
 	// languages
 	var $languages = array(
-		 'cs' => 'czech',
-		 'en' => 'english'
+	    'cs' => 'czech',
+	    'en' => 'english'
 	);
 	// special URIs (not localized)
 	var $special = array(
-		 "administrace"
+	    "administrace"
 	);
 	// where to redirect if no language in URI
 	var $default_uri = '';
+
+	/**
+	 * Pokud neni urcena, default language bude vzdy PRVNI 
+	 * v poli languages
+	 */
+	private $default_language = '';
 
 	/*	 * *********************************************** */
 
@@ -40,6 +46,11 @@ class MY_Lang extends CI_Lang
 		{
 			header( "Location: " . $CFG->site_url( str_replace( $this->default_lang(), '', $URI->uri_string() ) ), TRUE, 302 );
 			exit;
+		}
+
+		if ( strpos( $_SERVER['HTTP_HOST'], "wisheer.com" ) !== false )
+		{
+			$this->set_default_lang( 'en' );
 		}
 
 		$this->prepare_segments();
@@ -90,6 +101,23 @@ class MY_Lang extends CI_Lang
 		return NULL; // this should not happen
 	}
 
+	public function set_default_lang($string)
+	{
+		$this->default_language = $string;
+	}
+	
+	/**
+	 * Prida "th" , "rd" a "st" za cislovku
+	 * @param type $number
+	 * @return string
+	 */
+	public function languageNumberPrefix($number)
+	{
+		if ($this->lang() == 'en')
+			return $number >= 3 ? 'th' : ($number == 2 ? 'rd' : 'st');
+		else return '';
+	}
+
 	/**
 	 * Fetch a single line of text from the language array. Takes variable number
 	 * of arguments and supports wildcards in the form of '%1', '%2', etc.
@@ -114,7 +142,7 @@ class MY_Lang extends CI_Lang
 			$line = array_shift( $args );
 
 			//check to make sure the key is valid and load the line
-			$line = ($line == '' OR !isset( $this->language[$line] )) ? FALSE : $this->language[$line];
+			$line = ($line == '' OR !isset( $this->language[$line] )) ? $line : $this->language[$line];
 
 			//if the line exists and more function arguments remain
 			//perform wildcard replacements
@@ -128,11 +156,7 @@ class MY_Lang extends CI_Lang
 				}
 			}
 		}
-		else
-		{
-			//if no arguments given, no language line available
-			$line = false;
-		}
+
 
 		return $line;
 	}
@@ -145,10 +169,10 @@ class MY_Lang extends CI_Lang
 	 * @param boolean $return_as_string
 	 * @return String
 	 */
-	function view($file, $data = '', $return_as_string = false)
+	function view($file, $data = '', $return_as_string = false,$lang = null)
 	{
 		$CI = & get_instance();
-		$name = $file . "_" . $this->lang();
+		$name = $file . "_" . $lang == null ? $this->lang() : $lang;
 		if ( !file_exists( 'application/views/' . $name . '.php' ) )
 		{
 			$name = $file . "_" . $this->default_lang();
@@ -241,6 +265,8 @@ class MY_Lang extends CI_Lang
 	// default language: first element of $this->languages
 	function default_lang()
 	{
+		if ( $this->default_language != '' )
+			return $this->default_language;
 		foreach ( $this->languages as $lang => $language )
 		{
 			return $lang;

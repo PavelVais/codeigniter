@@ -51,13 +51,6 @@ class CI_Controller {
 		$this->load->initialize();
 		
 		log_message('debug', "Controller Class Initialized");
-		
-		//= Nacteni staticke tridy User ==================
-		require_once(APPPATH.'libraries/User.php');
-		User::init();
-		//= Nacteni staticke tridy Logs ==================
-		require_once(APPPATH.'models/logs.php');
-		Logs::init();
 	}
 
 	public static function &get_instance()

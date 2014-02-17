@@ -3,6 +3,7 @@
 /**
  * SPL Autoload Helper
  * Elliott Brueggeman
+ * extended by Pavel Vais
  * http://www.ebrueggeman.com
  */
 /* * * nullify any existing autoloads ** */
@@ -13,92 +14,73 @@ spl_autoload_extensions( '.php, .class.php' );
 
 /* * * class Loader ** */
 
-function classLoader($class)
+class Autoloader
 {
 
-	if ( !class_exists( 'CI_Model' ) )
+	static $folders;
+
+	/**
+	 * Init funkce tridy Autoloader
+	 * Nacte veskere cesty, do kterych se system diva a prispusobi
+	 * spl loader.
+	 */
+	static function init()
 	{
-		load_class( 'Model', 'core' );
-	}
+		self::$folders = array(
+			 BASEPATH . 'models/',
+			 APPPATH . 'models/',
+			 APPPATH . 'models/databasemodel',
+			 APPPATH . 'libraries/forms/'
+		);
+		spl_autoload_register( 'Autoloader::load' );
 
-	$path = APPPATH . 'models/' . strtolower( $class ) . '.php';
-	if ( file_exists( $path ) )
-	{
-		include $path;
-		return;
-	}
-
-	$models_folders = array(
-		 array(
-			  'path' => BASEPATH . 'models/',
-			  'folders' => array(
-			  )
-		 ),
-		 array(
-			  'path' => APPPATH . 'models/',
-			  'folders' => array(
-					'databasemodel',
-					'forms',
-					'abstract'
-			  )
-		 )
-	);
-
-
-	foreach ( $models_folders AS $folder )
-	{
-		foreach ( $folder['folders'] as $f )
+		if ( !class_exists( 'CI_Model' ) )
 		{
-			$path = $folder['path'] . $f . '/' . strtolower( $class ) . '.php';
+			load_class( 'Model', 'core' );
+		}
+	}
+
+	/**
+	 * Funkce automaticky volana, pokud se zavola nova instance
+	 * jeste nenactene tridy.
+	 * @param String $class
+	 * @return void
+	 */
+	static function load($class)
+	{
+		foreach ( self::$folders AS $folder )
+		{
+			$path = rtrim( $folder, '/' ) . '/' . strtolower( $class ) . '.php';
 			if ( file_exists( $path ) )
 			{
-
 				include $path;
 				return;
 			}
 		}
 	}
+
+	/**
+	 * Nacitani trid, do kterych se ma pristupovat
+	 * pomoci statickych metod.<br>
+	 * @param type $path - cesta k souboru vcetne nazvu souboru
+	 * @param String $class - mozne formy zapisu:
+	 * "Trida", "Trida::funkceKteraSeMaZavolat"
+	 */
+	static function loadStatic($path, $class)
+	{
+		$file = rtrim( $path, '.php' );
+		require_once APPPATH . $path . ".php";
+
+		if ( strpos( $class, "::" ) !== false )
+		{
+			call_user_func( $class );
+		}
+	}
+
 }
 
 /* * * register the loader functions ** */
-spl_autoload_register( 'classLoader' );
-
-/**
- * Funkce na loadovani trid urceny ke statickym volani funkci.
- * jako $files muze byt i array ve kterem musi byt cesta k souboru.
- * (pokud je v helperu, musi byt 'helper/nazevsouboru')
- * Pokud chcete rovnou volat i nejakou funkci, vlozte nasledujici souhrn atributu
- * [0] = cesta_k_souboru,
- * [1] = nazev_tridy
- * [2] = nazev_funkce (defaultne je "init")
- * @param type $files
- */
-function load_static_classes($files)
-{
-	if ( !is_array( $files ) )
-		$files = array($files);
-
-	foreach ( $files as $file )
-	{
-		$init_class = false;
-
-		if ( is_array( $file ) )
-		{
-			$init_class = $file[1];
-			$init_function = isset( $file[2] ) ? $file[2] : "init";
-			$file = $file[0];
-		}
-
-		$file = trim( $file, '/' );
-		$file = rtrim( $file, '.php' );
-		require APPPATH . $file . ".php";
-
-		if ( $init_class != false )
-		{
-			call_user_func( array($init_class, $init_function) );
-		}
-	}
-}
+Autoloader::init();
 
 /* End of file spl_autoload_helper.php */
 /* Location: ./system/application/helpers/spl_autoload_helper.php */

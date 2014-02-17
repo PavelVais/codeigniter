@@ -26,7 +26,7 @@ class Sitemap extends CI_Controller {
 	 */
 	function index()
 	{
-		$this->load->library('sitemapLinkGenerator','sitemap');
+		$this->load->library('sitemapLinkGenerator',null,'sitemap');
 		$this->sitemap->set_option('show_index', true); 
 		$this->sitemap->ignore('Administration', '*');
 		$this->sitemap->ignore('*', array('index','CreateFormSignUp'));
@@ -40,7 +40,7 @@ class Sitemap extends CI_Controller {
 	 */
 	public function create($redirect = false)
 	{
-		$this->load->library( 'sitemapXMLGenerator','sitemap');
+		$this->load->library( 'sitemapXMLGenerator',null,'sitemap');
 
 		$webs = array("");	//= Vložení stránek, které chce uživatel dát do sitemapy
 

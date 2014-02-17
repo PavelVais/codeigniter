@@ -10,6 +10,20 @@
   |--------------------------------------------------------------------------
  */
 
+
+/*
+  |--------------------------------------------------------------------------
+  | Paklize je stranka vicejazycna, musi se i hlavicka nastavovat dle jazyka.
+  | Pokud je 'use_lang_file' nastaveno na TRUE, tak description, keywords,
+  | language a title-postfix namisto sringu bere odkaz na jazyk.
+  | (napr:
+  | title-postfix = "Moje Stranka" => title-postfix = "header.titlepostfix" )
+  |--------------------------------------------------------------------------
+ */
+$config['header']['use_lang_file'] = false;
+$config['header']['lang_file'] = 'common';
+
+
 /*
   |--------------------------------------------------------------------------
   | Zakladni nastaveni hlavicky u kazde stranky (ktera dane informace generuje
@@ -35,8 +49,8 @@ $config['header']['title-postfix'] = 'My CI site';  //= Text, který se přidá 
 /**
  * Predpona pro cache CSS a JS
  */
-$config['header']['cache-css-prefix'] = 'cacheminifed_'; 
-$config['header']['cache-js-prefix'] = 'cache/cacheminifed_'; 
+$config['header']['cache-css-prefix'] = 'cacheminifed_';
+$config['header']['cache-js-prefix'] = 'cache/cacheminifed_';
 
 
 /*
@@ -79,14 +93,14 @@ $config['header']['cache-js-prefix'] = 'cache/cacheminifed_';
   |--------------------------------------------------------------------------
  */
 $config['header']['meta'][] = array(
-    'name' => 'copyright',
-    'content' => '(c) 2013 pavadesign.cz - Pavel Vais',
+	 'name' => 'copyright',
+	 'content' => '(c) 2013 pavadesign.cz - Pavel Vais',
 );
 
 
 $config['header']['meta'][] = array(
-    'name' => 'viewport',
-    'content' => 'width=device-width, initial-scale=1.0',
+	 'name' => 'viewport',
+	 'content' => 'width=device-width, initial-scale=1.0, maximum-scale=1',
 );
 /*
   $config['header']['meta'][] = array(
@@ -95,12 +109,12 @@ $config['header']['meta'][] = array(
   //'restriction' => 'fcb'
   ); */
 $config['header']['meta'][] = array(
-    'name' => 'robots',
-    'content' => 'all,index,follow'
+	 'name' => 'robots',
+	 'content' => 'all,index,follow'
 );
 $config['header']['meta'][] = array(
-    'name' => 'googlebot',
-    'content' => 'index,follow,snippet,archive'
+	 'name' => 'googlebot',
+	 'content' => 'index,follow,snippet,archive'
 );
 
 /* $config['header']['link'][] = array(
@@ -116,6 +130,13 @@ $config['header']['meta'][] = array(
   |
   | $config['header']['css'][] = array(
   |	'url' => 'main',
+  |   'language' => 'cs',	//Omezeni pro jazyk
+  |   'compress' => true, // (pouze pro CSS a JS!)
+  |   'version' => true, // (CSS a JS! - verze cache souboru)
+  |   'name => 'nazevCacheSouboru', // (pouze pro CSS a JS!)
+  |	'deferred' => TRUE, // (JS) - ma se vypsat az na konec stranky?
+  |	'detection' => "isMobile" , "isTablet", "isiOS", "isAndroidOS", "isComputer"
+  |					=> pri negaci staci pred to dat "!"
   | );
   | K CSS objektu se pristupuje stejne jako k jinym objektum.
   | Plati zde take pravidla 'cover' a 'except' popripade muzeme tyto omezeni
@@ -124,19 +145,18 @@ $config['header']['meta'][] = array(
   |--------------------------------------------------------------------------
  */
 
-//$config['header']['css'][] = 'http://fonts.googleapis.com/css?family=Open+Sans:300,400,600';
 $config['header']['css'][] = array(
-    'url' => 'bootstrap.css',
-    'cover' => 'all',
+	 'url' => array('bootstrap.min.css','font-awesome.min.css'),
+	 'cover' => 'all',
 );
 $config['header']['css'][] = array(
-    'url' => 'mystyle.css',
-    'cover' => 'all',
+	 'url' => 'mystyle.css',
+	 'cover' => 'all',
 	 'except' => 'administrace'
 );
 $config['header']['css'][] = array(
-    'url' => 'administration.css',
-    'cover' => 'administrace',
+	 'url' => 'administration.css',
+	 'cover' => 'administrace',
 );
 
 /**
@@ -150,28 +170,32 @@ $config['header']['css'][] = array(
   |	 'version' => '1.0'
   | );
  */
-
-
 /*
   |--------------------------------------------------------------------------
   | JavaScript
   | Stejne vlastnosti jako u CSS
   |--------------------------------------------------------------------------
  */
-//$config['header']['js'][] = 'http://cdnjs.cloudflare.com/ajax/libs/gsap/1.9.7/TweenMax.min.js';
-$config['header']['js'][] = 'http://ajax.googleapis.com/ajax/libs/jquery/1.8.1/jquery.min.js';
-$config['header']['js'][] = 'plugins/jquery.confirm.js';
+$config['header']['js'][] = array(
+	 'url' => array(
+		  'http://code.jquery.com/jquery-1.10.2.min.js',
+		  'plugins/jquery.confirm.js'
+	 ),
+	 'deferred' => true
+);
+
 $config['header']['js'][] = 'ci.js';
 
-/*
-  |--------------------------------------------------------------------------
-  | VIEWS:
-  | Diky views, muzete volat cele kusy kodu, ktere jsou ulozeny ve VIEW slozce.
-  | Hlavni argumentem musi byt cesta k VIEW souboru.
-  |--------------------------------------------------------------------------
- */
-//= HTML5 for fuckin IE
-$config['header']['view'][] = 'comp/header/html5';
+		  /*
+			 |--------------------------------------------------------------------------
+			 | VIEWS:
+			 | Diky views, muzete volat cele kusy kodu, ktere jsou ulozeny ve VIEW slozce.
+			 | Hlavni argumentem musi byt cesta k VIEW souboru.
+			 |--------------------------------------------------------------------------
+			*/
+//= HTML5 a Respond.js for fuckin IE
+		  $config['header']['view'][] = 'comp/header/html5';
+$config['header']['view'][] = 'comp/header/retina';
 
 //= GA
 $config['header']['view'][] = 'comp/header/google_analytics';
@@ -179,11 +203,10 @@ $config['header']['view'][] = 'comp/header/google_analytics';
 /*
   |--------------------------------------------------------------------------
   | STRINGS:
-  | Diky stringum muzete do hlavicky postovat presne zneni kodu, ktere sem
-  | napisete. 
-  | 
+  | String je jednoduchy hook, ktery vlozi do hlavicky presne to,
+  | co je v nem napsano. Idealni pro netradicni meta tagy, na ktere 
+  | nejde aplikovat standartni funkce
   |--------------------------------------------------------------------------
  */
 
 // $config['header']['string'][] = 'string example';
-?>

@@ -31,6 +31,14 @@ class Form
 	private $wrapper;
 
 	/**
+	 * Urcuje, jestli vsechny texty (errory, labely aj.)
+	 * brat jako odkazy na jazykovy balicky nebo je brat jako
+	 * normalni text
+	 * @var type 
+	 */
+	private $use_lang_file = FALSE;
+
+	/**
 	 * Atributy pridruzene k form prvku
 	 * @var Array 
 	 */
@@ -134,6 +142,8 @@ class Form
 	 */
 	public function __construct($destination_url = null)
 	{
+		$this->ci = & get_instance();
+
 		$this->wrapper = new Form_Wrapper();
 		$this->wrapper->setControlWrapper( 'dl' );
 		$this->wrapper->setLabelWrapper( 'dt' );
@@ -200,7 +210,6 @@ class Form
 				  'id' => $name,
 				  'rows' => $rows,
 				  'cols' => $cols,
-				  'label' => $label
 			 )
 		);
 
@@ -407,6 +416,9 @@ class Form
 		else
 			$element = & $this->getElement( $element_name );
 
+		if ( $this->use_lang_file() )
+			$message = $this->ci->lang->line( $message );
+
 		$co = array("%label%", "%name%", "%argument%");
 		$zaco = array($element['metadata']['label'], $element['data']['name'], $argument);
 
@@ -436,7 +448,7 @@ class Form
 	 */
 	public function set_value($value = null, $element_name = null)
 	{
-		if ( $element_name == null && $value === null )
+		if ( $element_name == null && $value == null )
 			show_error( "class Form: set_value() : nebyl urcen ani jeden argument." );
 
 		if ( is_object( $value ) )
@@ -478,7 +490,7 @@ class Form
 	 */
 	public function open_form()
 	{
-		return $this->open();
+		echo $this->open();
 	}
 
 	/**
@@ -490,7 +502,7 @@ class Form
 	 */
 	public function open()
 	{
-		return form_open( $this->submit_url, (count( $this->form_attributes ) == 0 ? null : $this->form_attributes ) ) . PHP_EOL;
+		echo form_open( $this->submit_url, (count( $this->form_attributes ) == 0 ? null : $this->form_attributes ) ) . PHP_EOL;
 	}
 
 	/**
@@ -500,7 +512,7 @@ class Form
 	 */
 	public function close_form()
 	{
-		return $this->close();
+		echo $this->close();
 	}
 
 	/**
@@ -509,7 +521,7 @@ class Form
 	 */
 	public function close()
 	{
-		return form_close() . PHP_EOL;
+		echo form_close() . PHP_EOL;
 	}
 
 	/**
@@ -603,7 +615,13 @@ class Form
 		//= Vygenerovani formularoveho prvku do promenne
 		$data = $element['data'];
 		$metadata = $element['metadata'];
-		switch ($element['metadata']['type'])
+		if ( isset( $metadata['label'] ) && $this->use_lang_file )
+		{
+			$metadata['label'] = $this->ci->lang->line( $metadata['label'] );
+		}
+
+
+		switch ($metadata['type'])
 		{
 			default:
 				$string = null;
@@ -612,6 +630,8 @@ class Form
 				$string = form_hidden( $data['name'], $data['value'] );
 				break;
 			case 'submit':
+				if ( $this->use_lang_file )
+					$data['value'] = $this->ci->lang->line( $data['value'] );
 				$string = form_submit( $data );
 				break;
 			case 'input':
@@ -764,6 +784,24 @@ class Form
 	}
 
 	/**
+	 * Nastavi formularove textove prvky, aby si brali text
+	 * z jazykoveho balicku. (tzn misto samotneho textu pisete
+	 * odkazy na text v balickach)
+	 * @param type $turn_on
+	 * @return type
+	 */
+	public function use_lang_file($turn_on = TRUE)
+	{
+		$this->use_lang_file = $turn_on;
+		return $this;
+	}
+
+	public function get_lang_usage()
+	{
+		return $this->use_lang_file;
+	}
+
+	/**
 	 * Paklize formular obsahuje chybu, misto vypsani chyby tradicnim
 	 * zpusobem se zavola javascriptova funkce urcena z teto funkce.
 	 * Jako parametry se odeslou jednotlive chyby a jejich reference na
@@ -789,14 +827,14 @@ class Form
 
 	/**
 	 * Vrati element dle jmena
-	 * @param String $element_name
+	 * @param String $elementName
 	 * @return void 
 	 */
-	private function &getElement($element_name)
+	public function &getElement($elementName)
 	{
 		foreach ( $this->elements as &$element )
 		{
-			if ( $element['data']['name'] == $element_name )
+			if ( $element['data']['name'] == $elementName )
 				return $element;
 		}
 		$n = null;
@@ -838,4 +876,107 @@ class Form
 
 }
 
-?>
+class FormGenerator
+{
+
+	/**
+	 *
+	 * @var Form
+	 */
+	static $form;
+	static $options;
+	static $ci;
+
+	/**
+	 * Funkce na nacteni formulare, pomoci ktereho muze tento
+	 * generator vygenerovat formular.
+	 * @param Form $form
+	 */
+	public static function setup(Form $form)
+	{
+		self::$form = $form;
+		self::$options = array(
+			 'is_first' => TRUE
+		);
+		self::$ci = & get_instance();
+	}
+
+	public static function open()
+	{
+		self::$form->open();
+		self::$options['is_first'] = false;
+	}
+
+	public static function close()
+	{
+		self::$form->close();
+	}
+
+	/**
+	 * Vygeneruje urceny formularovy prvek
+	 * @param String $elementName
+	 */
+	public static function generate($elementName, $withLabel = true)
+	{
+		if ( self::$options['is_first'] )
+		{
+			self::$options['is_first'] = false;
+			echo self::$form->open();
+		}
+		$element = is_array( $elementName ) ? $elementName : self::$form->getElement( $elementName );
+
+		if ( $withLabel && !isset( $element['metadata']['label_printed'] ) && isset( $element['metadata']['label'] ) )
+			self::generateLabel( $elementName );
+
+		if ( $element['metadata']['type'] == "radio" )
+			$element['data']['name'] = $element['metadata']['group'];
+
+		$function = 'form_' . $element['metadata']['type'];
+
+		if ( $function == "form_hidden" )
+			echo $function( $element['data']['name'], $element['data']['value'] );
+		else
+			echo $function( $element['data'] );
+	}
+
+	public static function generateHidden()
+	{
+		$hidden = self::$form->getElementsByType( 'hidden' );
+		if ( count( $hidden ) != 0 )
+			foreach ( $hidden as $value )
+			{
+				self::generate( $value['data']['name'], false );
+			}
+	}
+
+	/**
+	 * Vygeneruje label pro dany formularovy element
+	 * @param String $elementName
+	 * @return String
+	 */
+	public static function generateLabel($elementName)
+	{
+		$element = & self::$form->getElement( $elementName );
+		$element['metadata']['label_printed'] = TRUE;
+		echo form_label( self::$form->get_lang_usage() ? self::$ci->lang->line( $element['metadata']['label'] ) : $element['metadata']['label'], $element['data']['name'] );
+	}
+
+	/**
+	 * Vygeneruje cely formular
+	 */
+	private static function generateAll()
+	{
+		self::$form->generate();
+	}
+
+	/**
+	 * Vygeneruje submitovaci tlacitko
+	 */
+	public static function generateSubmit()
+	{
+		$submit = self::$form->getElementsByType( 'submit' );
+		$submit[0]['data']['value'] = self::$form->get_lang_usage() ? self::$ci->lang->line( $submit[0]['data']['value'] ) : $submit[0]['data']['value'];
+		echo form_submit( $submit[0]['data'] );
+	}
+
+}

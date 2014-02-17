@@ -19,7 +19,25 @@ $hook['display_override'] = array(
 	 'filepath' => 'hooks'
 );
 
+$hook['pre_system'] = array(
+	 'function' => 'load_exceptions',
+	 'filename' => 'uhoh.php',
+	 'filepath' => 'hooks',
+);
 
+$hook['post_controller_constructor'] = array(
+	 'class' => 'Annotation',
+	 'function' => 'check',
+	 'filename' => 'annotation.php',
+	 'filepath' => 'hooks',
+);
+
+$hook['post_controller_constructor'] = array(
+	 'class' => 'Retina',
+	 'function' => 'init',
+	 'filename' => 'retina.php',
+	 'filepath' => 'hooks',
+);
 
 
 /* End of file hooks.php */

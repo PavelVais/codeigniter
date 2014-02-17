@@ -16,7 +16,7 @@ if ( !defined( 'BASEPATH' ) )
  * @property MY_Lang $lang
  * @property GoogleAnalytics $googleanalytics
  */
-class Homepage extends My_Controller
+class Start extends My_Controller
 {
 
 	function __construct()
@@ -31,12 +31,7 @@ class Homepage extends My_Controller
 	public function index()
 	{
 		$data = array();
-		$this->load->view( 'homepage/view_index', $data );
-	}
-
-	public function we_are_working_on_it()
-	{
-		$this->lang->view( 'homepage/view_maintenance' );
+		$this->load->view( 'view_start', $data );
 	}
 
 	public function database()
@@ -44,7 +39,7 @@ class Homepage extends My_Controller
 		$TM = new TestModel;
 		
 		Dump($TM->get_all());
-		$this->lang->view( 'homepage/view_maintenance' );
+		//$this->lang->view( 'homepage/view_maintenance' );
 		//FB::info($TM->get_all(),'return');
 	}
 

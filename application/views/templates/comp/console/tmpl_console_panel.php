@@ -1,6 +1,7 @@
 
 <style>
 	#ci-debugpanel,#ci-debugwindow {
+		-moz-box-sizing: content-box;
 		height: 18px;
 		border: 1px solid #888888;
 		position: fixed;
@@ -23,7 +24,7 @@
 		z-index: 1000;
 	}
 	#ci-debugpanel > .ci-panel {
-
+		
 		border-left: 1px solid #aaa;
 		padding-left: 3px;
 		margin-left: 3px;

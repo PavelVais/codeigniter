@@ -14,20 +14,22 @@ class Head
 	 */
 	private static $generate_deffered;
 
-	public function init()
+	static public function init()
 	{
 		self::$ci = & get_instance();
 		self::$ci->load->helper( "html" );
-		self::$ci->load->config( 'header' );
+		self::$ci->load->config( 'head' );
 		self::$ci->load->driver( 'minify' );
+		self::$ci->lang->load( 'common' );
+
 		self::$settings = self::$ci->config->item( 'header' );
 		self::$generate_deffered = false;
-
+		
 		//= Na konci initu spravime vsechny tagy v configu, aby se nahrali
 		self::config_tags_proceed();
 	}
 
-	static public function generate($title = null, $dont_close = false)
+	static public function generate($title = null, $close = true)
 	{
 		if ( !self::$generate_deffered )
 		{
@@ -35,14 +37,11 @@ class Head
 			self::add()->string( '<link href="' . base_url() . self::get_setting( 'favicon' ) . '" rel="icon" type="image/x-icon">' );
 			self::$settings['title'] = $title;
 
-
-
-
 			echo doctype( self::get_setting( "doctype" ) ) . PHP_EOL;
 			echo "<html lang=" . self::get_setting( 'language' ) . '>' . PHP_EOL;
 			echo "<head>" . PHP_EOL;
 			echo '<meta charset=' . self::get_setting( 'encode' ) . '>' . PHP_EOL;
-			echo link_tag( site_url(), 'canonical', 'none' ) . PHP_EOL;
+			echo link_tag( current_url(), 'canonical', 'none' ) . PHP_EOL;
 		}
 
 		self::print_tags( "meta" );
@@ -55,7 +54,7 @@ class Head
 		self::print_tags( "string" );
 		self::print_tags( "view" );
 
-		if ( !$dont_close && !self::$generate_deffered )
+		if ( $close && !self::$generate_deffered )
 			self::close();
 
 		self::$generate_deffered = true;
@@ -68,6 +67,9 @@ class Head
 
 	static private function get_setting($setting)
 	{
+		if ( self::$settings['use_lang_file'] )
+			if ( $setting == 'doctype' || $setting == 'keywords' || $setting == 'language' || $setting == 'title-postfix' )
+				return (isset( self::$settings[$setting] ) ? self::$ci->lang->line( self::$settings[$setting] ) : false);
 		return (isset( self::$settings[$setting] ) ? self::$settings[$setting] : false);
 	}
 
@@ -76,15 +78,15 @@ class Head
 		$head_factory = new Head_factory( self::$settings );
 
 		$fnc = function($obj, $type, Head_factory $head_factory)
-		{
-			if ( !is_array( $obj ) )
-				return;
+				  {
+					  if ( !is_array( $obj ) )
+						  return;
 
-			foreach ( $obj as $value )
-			{
-				$head_factory->{$type}( $value );
-			}
-		};
+					  foreach ( $obj as $value )
+					  {
+						  $head_factory->{$type}( $value );
+					  }
+				  };
 
 		$fnc( self::get_setting( "meta" ), "meta", $head_factory );
 		$fnc( self::get_setting( "css" ), "css", $head_factory );
@@ -95,13 +97,16 @@ class Head
 
 	static private function print_tags($type)
 	{
+
 		if ( !isset( self::$container[$type] ) )
 			return false;
 
 		foreach ( self::$container[$type] as $tag )
 		{
 			if ( (self::$generate_deffered && $tag['deferred']) || (!self::$generate_deffered && !$tag['deferred']) )
+			{
 				echo $tag['value'];
+			}
 		}
 	}
 
@@ -134,7 +139,7 @@ class Head
 
 class Head_factory
 {
-
+	private $ci;
 	private $mode_add;
 
 	const MODE_ADD = true;
@@ -205,13 +210,13 @@ class Head_factory
 		{
 			$filename = $data['name'] . $data['version'] . ".css";
 			$urls = $this->cssPrefix . $filename;
-			if ( ($min_output = $this->ci->minify->get_file(  "css/" .$urls )) == FALSE || (isset( $data['debug'] ) && $data['debug']) )
+			if ( ($min_output = $this->ci->minify->get_file( "css/" . $urls )) == FALSE || (isset( $data['debug'] ) && $data['debug']) )
 			{
 				$min_output = $this->ci->minify->combine_files( array_map( function($val)
-						  {
-							  return 'css/' . $val;
-						  }, $data['url'] ), "css", TRUE );
-				$this->ci->minify->save_file( $min_output, "css/" .$urls );
+									 {
+										 return 'css/' . $val;
+									 }, $data['url'] ), "css", TRUE );
+				$this->ci->minify->save_file( $min_output, "css/" . $urls );
 			}
 
 			$identifier = $data['name'];
@@ -247,7 +252,7 @@ class Head_factory
 		$deferred = false;
 		$is_array = is_array( $data );
 		$urls = !$is_array ? $data : $data['url'];
-
+		$compress = false;
 		if ( !$this->mode_add )
 		{
 			Head::remove_from_container( 'js', $data == null ? null : $urls  );
@@ -260,19 +265,22 @@ class Head_factory
 		if ( $is_array )
 			$deferred = isset( $data['deferred'] ) && $data['deferred'];
 
+
+
 		if ( !is_array( $urls ) )
 			$urls = array($urls);
+
 		$identifier = $urls[0];
 
 		if ( $is_array && isset( $data['compress'] ) && $data['compress'] )
 		{
+			$compress = true;
 			$filename = $data['name'] . $data['version'] . ".js";
-			$urls = "js" . $this->jsPrefix . $filename;
-
-			if ( ($min_output = $this->ci->minify->get_file( $urls )) == FALSE || (isset( $data['debug'] ) && $data['debug']) )
+			$urls = $this->jsPrefix . $filename;
+			if ( ($min_output = $this->ci->minify->get_file( 'js/' . $urls )) == FALSE || (isset( $data['debug'] ) && $data['debug']) )
 			{
 				$min_output = $this->ci->minify->combine_files( $data['url'], "js", TRUE );
-				$this->ci->minify->save_file( $min_output, $urls );
+				$this->ci->minify->save_file( $min_output, 'js/' . $urls );
 			}
 			$identifier = $data['name'];
 			$urls = array($urls);
@@ -285,12 +293,8 @@ class Head_factory
 			if ( !isset( $parts['scheme'] ) )
 				$url = site_url( "js/" . $url );
 
-			$data = $this->builder( "script", array(
-				 'src' => $url
-					  ), true );
-
-
-			Head::add_to_container( "js", $identifier, $data, $deferred );
+			$data = $this->builder( "script", array('src' => $url), true );
+			Head::add_to_container( "js", $compress ? $identifier : $url, $data, $deferred );
 		}
 		return $this;
 	}
@@ -309,6 +313,12 @@ class Head_factory
 
 	function view($view_path)
 	{
+
+		if ( !$this->validator( $view_path ) )
+			return $this;
+
+		$view_path = !is_array( $view_path ) ? $view_path : $view_path['url'];
+
 		if ( !$this->mode_add )
 		{
 			Head::remove_from_container( 'view', $view_path );
@@ -324,6 +334,11 @@ class Head_factory
 		if ( !is_array( $obj ) )
 			return TRUE;
 
+		//= Je urcen jazyk, pro ktery se maji data aplikovat?
+		if ( isset( $obj['language'] ) && $this->ci->lang->lang() != $obj['language'] )
+		{
+			return FALSE;
+		}
 
 		if ( isset( $obj['cover'] ) && $obj['cover'] != 'all' )
 		{
@@ -376,7 +391,6 @@ class Head_factory
 				$segmentCount = substr_count( $singl, '/' );
 				for ( $index = 1; $index <= $this->ci->uri->total_segments(); $index++ )
 				{
-
 					$temp = '';
 
 					if ( $index + $segmentCount > $this->ci->uri->total_segments() )

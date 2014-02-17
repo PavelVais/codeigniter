@@ -24,7 +24,13 @@ li a:hover i,li.active a i {background-image: url("images/glyphicons-halflings.p
 .approve-panel { margin-right: 15px; }
 
 .bottom-panel { margin-top: 25px;}
-
+img.retina {
+	width: 100%;
+	max-width: 400px;
+}
+.retina.ret-300{
+	max-width: 300px;
+}
 /**************************
 ORIGO STRANKY
 ***************************/

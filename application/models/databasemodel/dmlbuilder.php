@@ -11,11 +11,11 @@
  */
 class DMLTable
 {
+
 	/**
 	 * Indetifikator primary sloupce
 	 * @var String 
 	 */
-
 	const COL_PRIMARY = "PRI";
 
 	/**
@@ -120,11 +120,14 @@ class DMLTable
 	 * Incoming znamena, ze tento sloupec je pouzivan v JINE tabulce.
 	 * Na jeden sloupec muze odkazovat vice tabulek!
 	 * (autor je v seznamu knih, ale take v seznamu dluzniku)
-	 * @param type $table
+	 * @param string $column - na jaky sloupec je odkazovano z jine tabulky
+	 * @param string $table - jaka tabulka odkazuje na tuto tabulku
+	 * @param string $fromColumn - udava, jaky sloupec z jine tabulky odkazuje
+	 * na tuto tabulku
 	 */
-	public function set_incoming_foreign_data($column, $table)
+	public function set_incoming_foreign_data($column, $table, $fromColumn)
 	{
-		$this->chains['in'][$column][] = $table;
+		$this->chains['in'][$column][] = $table . ":" . $fromColumn;
 		return $this;
 	}
 
@@ -148,6 +151,10 @@ class DMLTable
 		return isset( $this->chains['out'][$column] ) ? $this->chains['out'][$column] : false;
 	}
 
+	/**
+	 * Vrati vsechny Cizi klice, ktere z tabulky odkazuji jinam
+	 * @return type
+	 */
 	public function get_outgoing_foreign_data()
 	{
 		return $this->chains['out'];
@@ -164,31 +171,49 @@ class DMLTable
 		{
 			foreach ( $data as $table )
 			{
-				if ( $table == $targetTable )
+				if ( strpos($table, $targetTable) !== FALSE)
 					return $key;
 			}
 		}
 		return FALSE;
 	}
-	
+
 	/**
 	 * Odkazuje tato tabulka na jinou tabulku?
+	 * Muze odkazovat i vicekrat, proto se vzdy vraci array!
+	 * (autor_id a owner_id muze odkazovat na stejnou tabulku)
 	 * @param String $targetTable - dotaz na jinou tabulku
-	 * @return boolean
+	 * @return FALSE - tabulka na jinou neodkazuje
+	 * ARRAY - seznam sloupecku, ktery na danou tabulku odkazuji
 	 */
 	public function has_this_table_referencing($targetTable)
 	{
+		$ret = array();
+		$nothing = true;
 		foreach ( $this->get_outgoing_foreign_data() as $key => $data )
 		{
-				if ( $data == $targetTable )
-					return $key;
+			if ( $data == $targetTable )
+			{
+				$nothing = true;
+				$ret[] = $key;
+			}
 		}
-		return FALSE;
+
+		return !$nothing ? false : $ret;
 	}
 
 	public function get_table_name()
 	{
 		return $this->name;
+	}
+
+	/**
+	 * Donuti DMLBuilder aby obnovil cache pro tuto tabulku
+	 */
+	public function refresh()
+	{
+		DMLBuilder::removeDBCache( $this->get_table_name() );
+		return DMLBuilder::loadTableInfo( $this->get_table_name() );
 	}
 
 	/**
@@ -225,10 +250,15 @@ class DMLTable
 	{
 		return $this->columns;
 	}
-	
-	public function get_columns_names() {
+
+	/**
+	 * Pouziva se
+	 * @return type
+	 */
+	public function get_columns_names()
+	{
 		$return = array();
-		foreach($this->columns as $name => $value)
+		foreach ( $this->columns as $name => $value )
 		{
 			$return[] = $name;
 		}
@@ -252,6 +282,25 @@ class DMLTable
 	public function is_columns_cached()
 	{
 		return count( $this->columns ) == 0 ? false : true;
+	}
+	
+	/**
+	 * Z IN informace se vrati jak nazev tabulky [0] tak nazev sloupce [1], ktery
+	 * na danou tabulku odkazuje
+	 * @param string $connection
+	 * @return array
+	 */
+	public function parseInConnection($connection)
+	{
+		if (($pos = strpos($connection, ':')) === false)
+		{
+			show_error("Stara table_info u tabulky ".$this->name.'. provedte refrsh()!');
+		}
+		
+		return array(
+			 substr($connection, 0,$pos),
+			 substr($connection, $pos+1)
+		);
 	}
 
 	/**
@@ -279,11 +328,6 @@ class DMLTable
 class DMLBuilder
 {
 
-	/**
-	 * Cachovaci system ze tridy Cache
-	 * @var Cache
-	 */
-	protected $cache;
 	static $ci;
 	static $db;
 	static $loaded = false;
@@ -292,38 +336,37 @@ class DMLBuilder
 	 * Prefix k souborum vstahujici se k dml
 	 * @var String 
 	 */
-
 	const CACHE_PREFIX = 'dml_';
 
 	static function init()
 	{
 		if ( self::$loaded == true )
 			return;
-			self::$ci = & get_instance();
-			self::$ci->load->library( 'cache' );
-			self::$db = & self::$ci->db;
-			self::$loaded = true;
+		self::$ci = & get_instance();
+		self::$ci->load->library( 'cache' );
+		self::$db = & self::$ci->db;
+		self::$loaded = true;
 	}
 
 	/**
 	 * Ziska obraz tabulky ze souboru, pri opakovanem pouziti
 	 * ziska obraz z cache.
-	 * @param type $table_name
+	 * @param type $tableName
 	 * @return DMLTable
 	 */
-	static function loadTableInfo($table_name)
+	static function loadTableInfo($tableName)
 	{
 		DMLBuilder::init();
-		if ( !is_string( $table_name ) )
+		if ( !is_string( $tableName ) )
 			show_error( 'DMLBuilder::loadTableInfo(): $table_name musi byt string!' );
 
-		if ( ($tableInfo = DMLTable::getCachedTable( $table_name )) == false )
-			$tableInfo = self::$ci->cache->get( self::CACHE_PREFIX . 'table_' . $table_name );
+		if ( ($tableInfo = DMLTable::getCachedTable( $tableName )) == false )
+			$tableInfo = self::$ci->cache->get( self::CACHE_PREFIX . 'table_' . $tableName );
 
 		if ( $tableInfo != false )
 			DMLTable::cacheTable( $tableInfo );
 
-		return $tableInfo !== FALSE ? $tableInfo : DMLBuilder::buildTable( $table_name );
+		return $tableInfo !== FALSE ? $tableInfo : DMLBuilder::buildTable( $tableName );
 	}
 
 	static function buildTable($table_name)
@@ -333,7 +376,7 @@ class DMLBuilder
 		$stored_session = self::$db->store_session();
 		self::$db->_reset_select();
 
-
+		FB::info( 'BUILDTABLE procedure() table: ' . $table_name );
 
 		self::$db->select( 'COLUMN_NAME, DATA_TYPE, IS_NULLABLE,  CHARACTER_MAXIMUM_LENGTH,COLUMN_KEY' )
 				  ->where( 'table_name', $table_name )
@@ -355,7 +398,7 @@ class DMLBuilder
 
 		//= Nyni ziskam detailni info o provazanosti tabulek
 		//= Je nejaky z techto sloupcu obsazen v jinych tabulkach jako foreign klic?
-		self::$db->select( 'REFERENCED_COLUMN_NAME,TABLE_NAME' )
+		self::$db->select( 'REFERENCED_COLUMN_NAME,TABLE_NAME,COLUMN_NAME' )
 				  ->where_in( 'REFERENCED_TABLE_NAME', $table_name );
 
 		$resultDetailed = self::$db->get( 'INFORMATION_SCHEMA.KEY_COLUMN_USAGE' );
@@ -365,14 +408,14 @@ class DMLBuilder
 		{
 			foreach ( $resultDetailed->result() as $column )
 			{
-				$tableInfo->set_incoming_foreign_data( $column->REFERENCED_COLUMN_NAME, $column->TABLE_NAME );
+				$tableInfo->set_incoming_foreign_data( $column->REFERENCED_COLUMN_NAME, $column->TABLE_NAME, $column->COLUMN_NAME );
 			}
 		}
 		unset( $resultDetailed );
 
 		//= Nyni zjistime, jestli nejaky sloupec v tabulce neodkazuje na jinou tabulku
 		//= Nyni ziskam detailni info o provazanosti tabulek
-		self::$db->select( 'COLUMN_NAME, REFERENCED_TABLE_NAME' )
+		self::$db->select( 'COLUMN_NAME, REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME' )
 				  ->where_in( 'i.TABLE_NAME', $table_name )
 				  ->where( 'i.CONSTRAINT_TYPE', 'FOREIGN KEY' )
 				  ->join( 'information_schema.KEY_COLUMN_USAGE k', 'i.CONSTRAINT_NAME = k.CONSTRAINT_NAME ', 'left' );
@@ -396,6 +439,47 @@ class DMLBuilder
 		self::$db->restore_session( $stored_session );
 
 		return $tableInfo;
+	}
+
+	/**
+	 * Odstrani cache. Pokud neni vyplny nazev tabulky, odstrani se vsechny 
+	 * dml_ cache.
+	 * @param string $tableName - nazev tabulky pro vymazani
+	 * @return boolean
+	 */
+	static function removeDBCache($tableName = null)
+	{
+		DMLBuilder::init();
+		if ( $tableName == null )
+		{
+			self::$ci->cache->delete_group( self::CACHE_PREFIX );
+			return true;
+		}
+
+		self::$ci->cache->delete( self::CACHE_PREFIX . 'table_' . $tableName );
+		return true;
+	}
+
+	/**
+	 * Vsem selektum to prida prefix a vrati array
+	 * @param Array/String $select
+	 * @param String $tablePrefix
+	 * @return Array
+	 */
+	static function prepareSelect($select, $tablePrefix, $AS_prefix = null)
+	{
+
+		if ( $select == null || $select == '*' )
+			return array($tablePrefix . '.*');
+
+		if ( !is_array( $select ) )
+			$select = explode( ',', $select );
+		foreach ( $select as &$s )
+		{
+			$s = (strpos( $s, '.' ) === FALSE ? $tablePrefix . '.' . trim( $s, ' ' ) : $s) . ($AS_prefix != null ? ' AS ' . $AS_prefix . $s : '');
+		}
+
+		return $select;
 	}
 
 }

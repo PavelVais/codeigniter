@@ -14,12 +14,25 @@ class TestModel extends DML
 	public function __construct()
 	{
 		//= Nastaveni tabulky users
-		parent::__construct( 'authors' );
+		
+		parent::__construct( 'books' );
+		//DMLBuilder::removeDBCache();
+	}
+	
+	public function g()
+	{
+		$this->dbJoin('users');
+		
+		$result = $this->get();
+		
 	}
 
 	
 	public function get_all()
 	{
+		
+		//dump($this->tableInfo);
+		//dump(DMLBuilder::loadTableInfo('books_tags'));
 		/*
 		 * Chci ziskat vsechny autory a k nim priradit vsechny knihy
 		 * [0] -> 
@@ -40,10 +53,14 @@ class TestModel extends DML
 		 * 4. vygenerovat join('books', 'books_list.books_id = books.id');
 		 * 5. vygenerovat join('books_list', 'books_list.authors_id = books_list.id');
 		 */
-			$this->dbJoinMN('books','count(*)',FALSE,function(){
+			/*$this->dbJoinMN('books','count(*)',FALSE,function(){
 				$this->db->group_by('authors_id');
-			});
-			$this->dbJoin('adresses');
+			});*/
+		
+			//$this->dbJoin('users','author_id')->left();
+			//$this->dbJoin('users','owner_id')->select(array('adresses_id','name'))->left();
+			//$this->dbJoin('adresses','owner_adresses_id','users')->left();
+			//$this->dbJoin('adresses','author_adresses_id','users')->left();
 			
 			$array = array(
 				 'adresses_id' => 3,
@@ -53,10 +70,13 @@ class TestModel extends DML
 					  
 			$this->fetchData($array);
 			
+			$this->dbJoinMN('tags');
+			
 			//$this->save();
 			
-			
-			return $this->dbGet();
+			dump($this->dbGet());
+			//dump($this->get_queries_history());
+			return ;
 			
 			
 			/**

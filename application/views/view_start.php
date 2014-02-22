@@ -20,7 +20,14 @@
 					<li>Config Header.php byl přejmenován na Head.php, aby kopíroval konvenci z head_helper.php</li>
 					<li>Stránka <?php echo anchor('homepage') ?>, je ihned připravena pro psaní</li>
 					<li>Pár nepotřebných souborů odstraněno</li>
-
+					<li>DML update:</li>
+					<ul>
+						<li>byl přidán příkaz dbJoin(), který vrací třídu dmlJoin</li>
+						<li>byl přidán příkaz dbJoinMN(), který vrací třídu dmlJoinMN</li>
+						<li>Kod byl zpřehledněn, odstraněny zbytečné hooky</li>
+						<li>DML nyní podporuje vnořené několikanásobné joiny</li>
+						
+					</ul>
 				</ul>
 
 			</div>

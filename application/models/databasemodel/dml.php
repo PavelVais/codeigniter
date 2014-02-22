@@ -18,10 +18,10 @@ if ( !defined( 'BASEPATH' ) )
  *  + pridana funkce filter
  *  + pridana funkce select
  *  + pridany hooky (na nich je zalozen dbJoin() a dbJoinMN()
- *  - Vytvoreni DMLTable se presunulo do tdy DMLBuilder.
+ *  - Vytvoreni DMLTable se presunulo do tridy DMLBuilder.
  * 		+ pridana funkce DMLBuilder::loadTableInfo()		
  * 		+ pridana funkce DMLBuilder::buildTable()		
- * 
+ *  + addData() - kdyz se vlozi null, null se vlozi i do updatu(insertu)
  * 
  * @name DML
  * @author	Pavel Vais
@@ -95,6 +95,16 @@ abstract class DML extends CI_Model
 	protected $select;
 
 	/**
+	 * @var Array(DMLJoin)
+	 */
+	protected $joins;
+
+	/**
+	 * @var Array(DMLJoin)
+	 */
+	protected $joinsMN;
+
+	/**
 	 * Pokud je TRUE, neprovadi se zadna validace
 	 * @var type 
 	 */
@@ -111,7 +121,8 @@ abstract class DML extends CI_Model
 		$this->cache = $this->ci->cache;
 		$this->db = $this->ci->db;
 		$this->tableInfo = DMLBuilder::loadTableInfo( $table_name );
-
+		$this->joins = array();
+		$this->joinsMN = array();
 		$this->data = array();
 		$this->select = array();
 		$this->hooks = array(
@@ -151,17 +162,23 @@ abstract class DML extends CI_Model
 	protected function addData($data, $value = null)
 	{
 		if ( is_array( $data ) )
+		{
 			$this->data = array_merge( $this->data, $data );
+		}
 		else
+		{
 			$this->data[$data] = $value;
-		
+		}
+
 		return $this;
 	}
 
 	protected function removeData($data)
 	{
 		if ( isset( $this->data[$data] ) )
+		{
 			unset( $this->data[$data] );
+		}
 		return $this;
 	}
 
@@ -174,18 +191,28 @@ abstract class DML extends CI_Model
 	{
 
 		//= Projeti vsech PRE HOOKU
-		$this->proceedPreProcessing();
+		//$this->proceedPreProcessing();
+
+		$this->proceedJoins();
+
+		if ( empty( $this->select ) )
+		{
+			DMLBuilder::prepareSelect( '*', $this->name );
+		}
 
 		$result = $this->db->get( $this->name );
+		$this->save_last_query();
 		$this->log_operation( $result );
 
 		if ( $result->num_rows() == 0 )
 			return false;
 
+		
+
 		$result = $result->result();
 
 		//= Je aktivni nejaky postProcess?
-		$this->proceedPostProcessing( $result );
+		$this->proceedJoinsMN( $result );
 
 		return $result;
 	}
@@ -223,28 +250,79 @@ abstract class DML extends CI_Model
 	 * @param function $function - muze se pouzit anonymni funkce pro upresneni 
 	 * dotazu, vhodne pro seskupovani vysledku napr.:
 	 * function(){
-				$this->db->group_by('authors_id');
-			});
+	  $this->db->group_by('authors_id');
+	  });
 	 */
-	public function dbJoinMN($table, $select = null, $escape = true, $function = false)
+	public function &dbJoinMN($table, $fromColumn = null)
 	{
+		require_once APPPATH . 'models/databasemodel/dmljoin.php';
+		require_once APPPATH . 'models/databasemodel/dmljoinmn.php';
+		
+		$this->joinsMN[] = new DMLJoinMN( $table, $this->tableInfo, $fromColumn );
 
-		$this->hooks['POST'][] = array(
-			 'type' => 'JOINMN',
-			 'arg' => $table,
-			 'select' => $select,
-			 'escape' => $escape,
-			 'eval' => $function
-		);
+		return $this->joinsMN[count( $this->joinsMN ) - 1];
+		
 	}
 
-	public function dbJoin($table, $select = null)
+	/**
+	 * 
+	 * @param type $table - nazev tabulky, kterou chcete do vysledku napojit
+	 * @param type $fromColumn - pokud ma tabulka vice sloupcu, ktere
+	 * na danou tabulku odkazuji, je potreba, abyste manualne urcili,
+	 * kterou tabulku chcete propojit
+	 * @param strin $fromTable - pokud chcete pouzit join z jiny tabulky nez 
+	 * z te, ktera je prave aktivni, tak vyuzijete treti parametr
+	 * (hodi se na vnoreny join, ktery vyuziva predesly join)
+	 * @return DMLJoin
+	 */
+	public function &dbJoin($table, $fromColumn = null, $fromTable = null)
 	{
-		$this->hooks['PRE'][] = array(
-			 'type' => 'JOIN',
-			 'arg' => $table,
-			 'select' => $select
-		);
+		require_once APPPATH . 'models/databasemodel/dmljoin.php';
+		$targetTable = $this->tableInfo;
+
+		if ( $fromTable != null )
+		{
+			$targetTable = DMLBuilder::loadTableInfo( $fromTable );
+		}
+
+		$this->joins[] = new DMLJoin( $table, $targetTable, $fromColumn );
+
+		return $this->joins[count( $this->joins ) - 1];
+	}
+
+	private function proceedJoins()
+	{
+		$this->db->select( DMLBuilder::prepareSelect( $this->select, $this->name ) );
+		$identificator = 0;
+		foreach ( $this->joins as $join )
+		{
+			$identificator++;
+			$fromColumn = $join->referencingColumn;
+			if ( ($pos = strpos( $fromColumn, '_' )) === strpos( $fromColumn, '_id' ) )
+			{
+				$join->execute( $this->db, $identificator > 1 ? $identificator : ''  );
+				continue;
+			}
+
+			$findTable = substr( $fromColumn, 0, $pos );
+			$join->referencingColumn = substr( $fromColumn, $pos + 1 );
+			foreach ( $this->joins as $j )
+			{
+				if ( rtrim( $j->getGeneratedInfo( 'AS' ), '_' ) == $findTable )
+				{
+					$join->execute( $this->db, $identificator > 1 ? $identificator : '', $j->getGeneratedInfo( 'tableName' ), $fromColumn );
+					continue 2;
+				}
+			}
+		}
+	}
+	
+		private function proceedJoinsMN(&$result)
+	{
+		foreach ( $this->joinsMN as $joinMN )
+		{
+			$joinMN->execute($this->db,$result);
+		}
 	}
 
 	/**
@@ -327,7 +405,9 @@ abstract class DML extends CI_Model
 		}
 
 		if ( $add_prefix != FALSE )
-			$this->prepareSelect( $this->select, $add_prefix == true ? $this->name : $add_prefix  );
+		{
+			$this->select = DMLBuilder::prepareSelect( $this->select, $add_prefix == true ? $this->name : $add_prefix  );
+		}
 
 		return $this;
 	}
@@ -546,11 +626,6 @@ abstract class DML extends CI_Model
 		$this->cache->delete( $this->cache_prefix . 'table_' . $this->tableInfo->get_table_name() );
 	}
 
-	public function cache_clear()
-	{
-		
-	}
-
 	public function last_id()
 	{
 		return $this->db->insert_id();
@@ -733,7 +808,6 @@ abstract class DML extends CI_Model
 
 		else
 		{
-			FB::info( $this->select, 'pridavam select' );
 			$this->db->select( $this->select );
 		}
 	}
@@ -794,7 +868,7 @@ abstract class DML extends CI_Model
 			foreach ( $result as $rows )
 			{
 				if ( !isset( $rows->$column ) )
-					show_error( 'proceedJoinMNConnections(): v SELECTu neni sloupec ' . $column );
+					show_error( 'proceedJoinMNConnections(): v SELECTU neni sloupec ' . $column );
 				$dataWhere[] = $rows->$column;
 			}
 			foreach ( $tables as $table )
@@ -818,8 +892,6 @@ abstract class DML extends CI_Model
 						$select = $hook['select'];
 						$select .= ',' . $targetColumn;
 					}
-
-
 
 					//= Vime, ze tato tabulka ($targetTable) je prostrednikem!!
 					$this->db->join( $targetTable, $targetTable . '.' . $targetColumn . '=' . $this->tableInfo->get_table_name() . '.' . $column )
@@ -918,5 +990,5 @@ abstract class DML extends CI_Model
 
 }
 
-/* End of file DatabaseModel.php */
-/* Location: ./application/models/DatabaseModel.php */
+/* End of file DML.php */
+/* Location: ./application/models/DML.php */

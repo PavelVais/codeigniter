@@ -31,12 +31,6 @@ class Start extends My_Controller
 	public function index()
 	{
 		$data = array();
-		$this->load->database();
-		$a = new DML\Model\TestModel();
-		$c = new Gmap();
-		$d = new Custom\Message;
-		Autoloader::$finder->cache->commit();
-		Autoloader::$timer->result();
 		$this->load->view( 'view_start', $data );
 	}
 

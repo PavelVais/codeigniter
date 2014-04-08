@@ -288,7 +288,6 @@ class Form
 			$element = &$this->active_element;
 		else
 			$element = &$this->getElement( $dropdown_element_name );
-
 		$element['data']['default'] = $option_name;
 		return $this;
 	}

@@ -12,12 +12,13 @@ if ( !defined( 'BASEPATH' ) )
   |	http://codeigniter.com/user_guide/general/hooks.html
   |
  */
+/*
 $hook['display_override'] = array(
 	 'class' => 'Console',
 	 'function' => 'init',
 	 'filename' => 'console.php',
 	 'filepath' => 'hooks'
-);
+);*/
 
 $hook['pre_system'] = array(
 	 'function' => 'load_exceptions',

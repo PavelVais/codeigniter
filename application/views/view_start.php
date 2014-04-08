@@ -9,6 +9,43 @@
 		<div class="hero-unit">
 			<h1 class=""><i class='fa fa-bullhorn'></i> Codeigniter <?php echo CI_VERSION ?> je nainstalován a běží...</h1>
 			<div class="well">
+				<h2>pack verze: 1.2.0</h2>
+				<ul>
+					<li>Formulářový prvek dropdown a hidden nyní podporují extra atributy</li>
+					<li>Pár věcí odstranění z administrace, stále je potřeba ji předělat / připravit</li>
+					<li>DMLHelper nyní obsahuje funkci getValuesFromArrays()</li>
+					<li>DML nyní obsahuej static proměnou DEBUG, která zapne detailní debugování do FireBugu</li>
+					<li>Opraven bug v DML funkci dbCountRows()</li>
+					<li>Přidan příkaz DML->dbDelete()</li>
+					<li>DML: Při změně názvu tabulky na stejný název se nyní nenačítá znova celá cache</li>
+					<li>Opravena chyba s retina tridou</li>
+					<li>Zbrusu nový autoloader! viz kolonka autoloaderu</li>
+					<li>Třída Head byla přesunuta do knihovny</li>
+					<li>Kompletní změna DML:</li>
+					<ul>
+						<li>DML využívá namespace DML</li>
+						<li>Hlavní soubor DML byl přejmenován na "Base"</li>
+						<li>Všechny modely byly aktualizovány</li>
+						<li>Soubor dml byl přejmenován na "Base"</li>
+						<li>Soubor dmlbuilder byl přejmenován na "Builder"</li>
+						<li>Soubor dmltable byl přejmenován na "Table"</li>
+						<li>Soubor dmlhelper byl přejmenován na "Helper"</li>
+						<li>Soubor dmlexception byl přejmenován na "DBException"</li>
+						<li>Soubor dmlvalditator byl přejmenován na "Validator"</li>
+						<li>Soubor dmlvalditatorinterface byl přejmenován na "ValidatorInterface"</li>
+						<li>Soubor dmlcache byl smazán</li>
+							
+					</ul>
+					<li>Přidána knihovna na user autologing. + sql create table dotaz</li>
+						
+				</ul>
+				<h2>pack verze: 1.1.1</h2>
+				<ul>
+					<li>Aktualizován login do administrace pro boostrap 3</li>
+					<li>Knihovna Roles nyni podporuje role z jine tabulky (pres join)</li>
+					<li>Menší cleanup</li>
+					<li>TODO: administrace</li>
+				</ul>
 				<h2>pack verze: 1.1.0</h2>
 				<ul>
 					<li>Aktualizován bootstrap na verzi 3.1.0, bez glyphicons modulu</li>
@@ -63,11 +100,24 @@
 			</div>
 			<div class="well">
 				<h2>Autoloader plugin:</h2>
-				<p>Přibyla nová autoloader třída:</p>
+				<p>Nejlepší autoloading na světě! Vše co jednou zavoláte, tak se uloží do cache a příště už to nic nehledá</p>
+				<p>Není potřeba statické třídy nějak inicializovat, resp. to už si každej udelá sám</p>
+				<h3>Nová třída autoload_finder:</h3>
+				<p>Slouží k hledání souborů. Jediná funkce, která je potřeba je autoload_finder->find($file);
+					<br>
+					ke které se přistupuje přes statickou proměnou ve třídě Autoloader;
+				</p>
+				<pre>
+Autoloader::$finder->find($file);
+				</pre>
+				<h3>Nová třída autoload_cache:</h3>
+				<p>Obsahuje všechny cesty k souborům, které se načítají. Zde je výčet potřebných funkcí:</p>
 				<ul>
-					<li>Autoload::load($názevtřídy) -> načte novou třídu, tato funkce je automaticky volána.</li>
-					<li>Autoload::loadStatic($path, $class) -> načte dodatečně třídu. Pokud je v názvu třídy "::" automaticky se volá i funkce., která je po tom obsažená</li>
+					<li>ban($filename)</li>
+					<li>unBan($filename)</li>
+					<li>commit($overwrite = false)</li>
 				</ul>
+				
 			</div>
 			<div class="well">
 				<h2>HTMLElement plugin:</h2>

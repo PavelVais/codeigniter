@@ -8,7 +8,7 @@
  * hash
  * @author Pavel Vais
  */
-class ConfirmModel extends DML
+class ConfirmModel extends DML\Base
 {
 	/**
 	 * Jeden tyden v sekundach 
@@ -84,7 +84,7 @@ class ConfirmModel extends DML
 
 			if ( $this->dbGetOne() != FALSE )
 			{
-				$this->set_error( "Pro tag(y) " . $this->_prepare_tags() . " již potvrzovací kód existuje.", DMLException::ERROR_NUMBER_DUPLICATED );
+				$this->set_error( "Pro tag(y) " . $this->_prepare_tags() . " již potvrzovací kód existuje.", DBException::ERROR_NUMBER_DUPLICATED );
 				return FALSE;
 			}
 

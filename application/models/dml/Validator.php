@@ -1,5 +1,5 @@
 <?php
-
+namespace DML;
 if ( !defined( 'BASEPATH' ) )
 	exit( 'No direct script access allowed' );
 
@@ -12,7 +12,7 @@ if ( !defined( 'BASEPATH' ) )
  * @copyright Pavel Vais
  * @version 1.0
  */
-abstract class DMLValidator
+abstract class Validator
 {
 	
 	/**
@@ -30,10 +30,10 @@ abstract class DMLValidator
 	{
 		switch ($data_type)
 		{
-			case DMLTable::COL_TYPE_INT:
+			case Table::COL_TYPE_INT:
 				return is_numeric( $data_value );
-			case DMLTable::COL_TYPE_DATE:
-			case DMLTable::COL_TYPE_DATETIME:
+			case Table::COL_TYPE_DATE:
+			case Table::COL_TYPE_DATETIME:
 				return preg_match( "/^[0-9_\-: ]+$/", $data_value );
 			default:
 				return TRUE;

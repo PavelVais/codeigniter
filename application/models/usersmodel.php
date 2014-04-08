@@ -10,13 +10,13 @@
  * hash
  * @author Pavel Vais
  */
-class UsersModel extends DML
+class UsersModel extends DML\Base
 {
+
 	/**
 	 * Jmeno sloupce, dle ktereho se 
 	 * kontroluje email.
 	 */
-
 	const EMAIL_CHECK = "email";
 
 	/**
@@ -44,19 +44,35 @@ class UsersModel extends DML
 	const ROWS_PER_PAGE = 10;
 
 	/**
+	 * Nazev tabulky pro role. 
+	 * Pokud je prazdna, urci se jako role ta, ktera
+	 * je v sloupecku "role" a nic se nejoinuje.
+	 * Doplnuje se v config/authorization
+	 * @var String
+	 */
+	private $roleTable;
+
+	/**
 	 * Konstruktor tridy,
 	 * nacte helper string. 
 	 */
 	public function __construct()
 	{
 		//= Nastaveni tabulky users
-		parent::__construct( 'users' );
+		parent::__construct( 'user' );
+		$this->load->config('authorization');
+		$this->roleTable = $this->ci->config->item( 'roleTable','authorization');
 	}
 
 	public function get_user_by_id($id)
 	{
-		$this->db->where( "id", $id );
-		return $this->dbGetOne();
+		$this->db->where( $this->name . ".id", $id );
+
+		if ( $this->roleTable != '' )
+			$this->dbJoin( 'roles' )->select( 'name' );
+		
+		$result =  $this->dbGetOne();
+		return $result;
 	}
 
 	public function get_user_by_username($username)
@@ -194,9 +210,9 @@ class UsersModel extends DML
 
 	function get_all_users($page = 1)
 	{
-		if ($page != false)
+		if ( $page != false )
 			$this->db->limit( self::ROWS_PER_PAGE, self::ROWS_PER_PAGE * ($page - 1) );
-		
+
 		return $this->dbGet();
 	}
 
@@ -210,12 +226,12 @@ class UsersModel extends DML
 		}
 		if ( $where_array !== null )
 		{
-			$this->db->where($where_array);
+			$this->db->where( $where_array );
 		}
-		
-		if ($just_count_it)
+
+		if ( $just_count_it )
 			return $this->count_users();
-		
+
 		$this->db->limit( self::ROWS_PER_PAGE, self::ROWS_PER_PAGE * ($page - 1 ) );
 
 		return $this->dbGet();

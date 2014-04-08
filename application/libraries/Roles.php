@@ -23,7 +23,13 @@ class Roles
 	 * @var String 
 	 */
 	private $user_role;
-
+	
+	/**
+	 * Slouzi k dotazovani databaze
+	 * @var UsersModel
+	 */
+	private $usersModel;
+	
 	/**
 	 * Status, ktery porovnavac vraci kdyz:
 	 * V podmince je dana role vyslovne zakazana 
@@ -62,11 +68,12 @@ class Roles
 	 */
 	function __construct()
 	{
-
+		Autoloader::loadStatic( 'libraries/User', 'User::init' );
 		$this->ci = & get_instance();
 		$this->ci->load->config( 'roles' );
-		$this->ci->load->model( "tank_auth/users", 'users' );
-
+		
+		//$this->ci->load->model( "tank_auth/users", 'users' );
+		$this->usersModel = new UsersModel;
 		$config = $this->ci->config->item( 'roles' );
 
 		$this->roles = $config['roles'];
@@ -74,8 +81,11 @@ class Roles
 
 		if ( User::is_logged_in() )
 		{
-			$user_data = $this->ci->users->get_user_by_id( User::get_id(), TRUE );
+			$user_data = $this->usersModel->get_user_by_id( User::get_id(), TRUE );
 
+			if ($this->ci->config->item( 'roleTable','authorization' ) != '')
+				$user_data->role = $user_data->role_name;
+			
 			if ( !isset( $user_data->role ) OR $user_data->role == "" OR $user_data->role == null )
 			{
 				$this->user_role = $this->_get_default_role();
@@ -188,11 +198,21 @@ class Roles
 
 	private function _get_role($role_name)
 	{
+		if (!isset($this->roles[$role_name]))
+		{
+			show_error("Roles: role $role_name neni definovana.");
+			
+		}
 		return $this->roles[$role_name];
 	}
 
 	private function _get_rule($rule_name, $rule_method = null)
 	{
+		if (!isset($this->rules[$rule_name]))
+		{
+			show_error("Roles: pravidlo $rule_name > $rule_method neni definovano.");
+			
+		}
 		return $rule_method == null ? $this->rules[$rule_name] : $this->rules[$rule_name][$rule_method];
 	}
 

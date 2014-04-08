@@ -1,5 +1,5 @@
 <?php
-
+namespace DML;
 if ( !defined( 'BASEPATH' ) )
 	exit( 'No direct script access allowed' );
 
@@ -8,6 +8,15 @@ if ( !defined( 'BASEPATH' ) )
  * komunikaci s databazi
  * Jako Abstraktni tridu je mozne DM pouzivat jako rodice pro dalsi tridy.
  * @changelog
+ * 2.2 - + Pridana moznost debugovani do FB (self::$debug = TRUE)
+ * 			+ Pridan prikaz dbDelete()
+ * 			- Tabulka se nemuze zmenit na stejny nazev
+ * 			- opraven bug v dbCountRows()
+ * 			
+ * 2.1 -
+ * 		+ Předelana funkce dbJoin a dbJoinMN
+ * 		- smazana funkionalita hooku, je to nesmysl :)
+ *    - prepareSelect dan jako static funkce do DMLBuilderu
  * 2.0 - 
  *  - odstranena funkce cache. (neni za potrebi, je oddelena)
  *  - get() , get_one(), update() a save() prejmenovany na:
@@ -25,7 +34,7 @@ if ( !defined( 'BASEPATH' ) )
  * 
  * @name DML
  * @author	Pavel Vais
- * @version 2.0
+ * @version 2.2
  * @copyright Pavel Vais
  */
 
@@ -34,7 +43,7 @@ if ( !defined( 'BASEPATH' ) )
  * @property CI_DB_active_record $db
  * @property ConsoleLogger $consolelogger
  */
-abstract class DML extends CI_Model
+abstract class Base extends \CI_Model
 {
 
 	/**
@@ -51,16 +60,9 @@ abstract class DML extends CI_Model
 
 	/**
 	 * Trida, ktera zapouzdruje infromace z dane tabulky
-	 * @var DMLTable
+	 * @var Table
 	 */
 	protected $tableInfo;
-
-	/**
-	 * Hooky, ktery se provedou PRED (PRE)
-	 * nebo PO (POST) vykonani GET prikazu
-	 * @var type 
-	 */
-	protected $hooks = array();
 
 	/**
 	 * Obsahuje hodnoty ke sloupcum, ktere se budou
@@ -111,31 +113,26 @@ abstract class DML extends CI_Model
 	private $disableValidation = false;
 
 	/**
+	 * Pri aktivaci (true) se do FB vypisuji vsechny DB transakce
+	 * @var boolean
+	 */
+	static $DEBUG = FALSE;
+
+	/**
 	 * Constructor teto tridy
 	 */
 	function __construct($table_name)
 	{
-		Autoloader::loadStatic( 'models/databasemodel/dmlbuilder', 'DMLBuilder' );
 		$this->ci = & get_instance();
 		$this->name = $table_name;
 		$this->cache = $this->ci->cache;
 		$this->db = $this->ci->db;
-		$this->tableInfo = DMLBuilder::loadTableInfo( $table_name );
+		$this->tableInfo = Builder::loadTableInfo( $table_name );
 		$this->joins = array();
 		$this->joinsMN = array();
 		$this->data = array();
 		$this->select = array();
-		$this->hooks = array(
-			 'PRE' => array(),
-			 'POST' => array()
-		);
 
-		//= pridani hooku na validaci selectu
-		$this->hooks['PRE'][] = array(
-			 'type' => 'SELECT'
-		);
-
-		include_once APPPATH . "models/databasemodel/dmlvalidatorinterface.php";
 	}
 
 	/**
@@ -189,25 +186,16 @@ abstract class DML extends CI_Model
 	 */
 	protected function dbGet()
 	{
-
-		//= Projeti vsech PRE HOOKU
-		//$this->proceedPreProcessing();
-
 		$this->proceedJoins();
-
-		if ( empty( $this->select ) )
-		{
-			DMLBuilder::prepareSelect( '*', $this->name );
-		}
+		//$this->proceedSelects();
 
 		$result = $this->db->get( $this->name );
+
 		$this->save_last_query();
 		$this->log_operation( $result );
 
 		if ( $result->num_rows() == 0 )
 			return false;
-
-		
 
 		$result = $result->result();
 
@@ -227,41 +215,28 @@ abstract class DML extends CI_Model
 		$this->db->limit( 1 );
 
 		//= Projeti vsech PRE HOOKU
-		$this->proceedPreProcessing();
+		$this->proceedJoins();
+		//$this->proceedSelects();
 
-		$result = $this->db->get( $this->tableInfo->get_table_name() );
+		$result = $this->db->get( $this->name );
 		$this->save_last_query();
 		$this->log_operation( $result );
 
 		if ( $result->num_rows() != 1 )
 			return FALSE;
-
-		$this->proceedPostProcessing( $result->result() );
+		$this->proceedJoinsMN( $result->row() );
 		return $result->row();
 	}
 
 	/**
-	 * Propoji MN jednu tabulku s druhou. S tim e vysledky se zaradi do promenny
-	 * ktera ma stejny nazev jako dana tabulka.
-	 * @param String $table - nazev pozadovane tabulky
-	 * @param String $select - select jednotlivych sloupcu v tabulce
-	 *  NULL = vemou se vsechny sloupce
-	 * @param Boolean $escape - ma se select escapovat?
-	 * @param function $function - muze se pouzit anonymni funkce pro upresneni 
-	 * dotazu, vhodne pro seskupovani vysledku napr.:
-	 * function(){
-	  $this->db->group_by('authors_id');
-	  });
+	 * Smaze vsechny radky, ktere jsou ovlivneny WHERE parametrem
+	 * @return \DML
 	 */
-	public function &dbJoinMN($table, $fromColumn = null)
+	protected function dbDelete()
 	{
-		require_once APPPATH . 'models/databasemodel/dmljoin.php';
-		require_once APPPATH . 'models/databasemodel/dmljoinmn.php';
-		
-		$this->joinsMN[] = new DMLJoinMN( $table, $this->tableInfo, $fromColumn );
-
-		return $this->joinsMN[count( $this->joinsMN ) - 1];
-		
+		$this->db->delete( $this->name );
+		$this->save_last_query();
+		return $this;
 	}
 
 	/**
@@ -270,29 +245,46 @@ abstract class DML extends CI_Model
 	 * @param type $fromColumn - pokud ma tabulka vice sloupcu, ktere
 	 * na danou tabulku odkazuji, je potreba, abyste manualne urcili,
 	 * kterou tabulku chcete propojit
-	 * @param strin $fromTable - pokud chcete pouzit join z jiny tabulky nez 
+	 * @return DMLJoinMN
+	 */
+	public function &dbJoinMN($table, $fromColumn = null)
+	{
+
+		$this->joinsMN[] = new JoinMN( $table, $this->tableInfo, $fromColumn );
+
+		return $this->joinsMN[count( $this->joinsMN ) - 1];
+	}
+
+	/**
+	 * 
+	 * @param type $table - nazev tabulky, kterou chcete do vysledku napojit
+	 * @param type $fromColumn - pokud ma tabulka vice sloupcu, ktere
+	 * na danou tabulku odkazuji, je potreba, abyste manualne urcili,
+	 * kterou tabulku chcete propojit
+	 * @param string $fromTable - pokud chcete pouzit join z jiny tabulky nez 
 	 * z te, ktera je prave aktivni, tak vyuzijete treti parametr
 	 * (hodi se na vnoreny join, ktery vyuziva predesly join)
-	 * @return DMLJoin
+	 * @return Join
 	 */
 	public function &dbJoin($table, $fromColumn = null, $fromTable = null)
 	{
-		require_once APPPATH . 'models/databasemodel/dmljoin.php';
 		$targetTable = $this->tableInfo;
 
 		if ( $fromTable != null )
 		{
-			$targetTable = DMLBuilder::loadTableInfo( $fromTable );
+			$targetTable = Builder::loadTableInfo( $fromTable );
 		}
 
-		$this->joins[] = new DMLJoin( $table, $targetTable, $fromColumn );
+		$this->joins[] = new Join( $table, $targetTable, $fromColumn );
 
 		return $this->joins[count( $this->joins ) - 1];
 	}
 
 	private function proceedJoins()
 	{
-		$this->db->select( DMLBuilder::prepareSelect( $this->select, $this->name ) );
+		if ( empty( $this->joins ) )
+			return;
+		$this->db->select( Builder::prepareSelect( $this->select, $this->name ) );
 		$identificator = 0;
 		foreach ( $this->joins as $join )
 		{
@@ -316,61 +308,12 @@ abstract class DML extends CI_Model
 			}
 		}
 	}
-	
-		private function proceedJoinsMN(&$result)
+
+	private function proceedJoinsMN(&$result)
 	{
 		foreach ( $this->joinsMN as $joinMN )
 		{
-			$joinMN->execute($this->db,$result);
-		}
-	}
-
-	/**
-	 * Funkce na obslouzeni PRE hooku a zavolani spravnych funkci
-	 * @param type $result
-	 * @return boolean
-	 */
-	private function proceedPreProcessing()
-	{
-		$hooks = $this->hooks['PRE'];
-		$hooks = array_reverse( $hooks );
-		if ( count( $hooks ) == 0 )
-			return false;
-
-		foreach ( $hooks as $process )
-		{
-			switch ($process['type'])
-			{
-				case 'JOIN':
-					$this->proceedJoinConnections( $process );
-					break;
-				case 'SELECT':
-					$this->proceedSelectHook();
-					break;
-			}
-		}
-	}
-
-	/**
-	 * Funkce na obslouzeni POST hooku a zavolani spravnych funkci
-	 * @param type $result
-	 * @return boolean
-	 */
-	private function proceedPostProcessing(&$result)
-	{
-		$hooks = $this->hooks['POST'];
-
-		if ( count( $hooks ) == 0 )
-			return false;
-
-		foreach ( $hooks as $process )
-		{
-			switch ($process['type'])
-			{
-				case 'JOINMN':
-					$this->proceedJoinMNConnections( $process, $result );
-					break;
-			}
+			$joinMN->execute( $this->db, $result );
 		}
 	}
 
@@ -384,6 +327,7 @@ abstract class DML extends CI_Model
 	 * 	- FALSE = neprida prefix ke sloupcum
 	 * 	- JINA HODNOTA (String) = prida se presne tato hodnota
 	 * @return \DML
+	 * @deprecated since version 2.0
 	 */
 	public function select($columns, $overwrite = false, $add_prefix = false)
 	{
@@ -406,7 +350,7 @@ abstract class DML extends CI_Model
 
 		if ( $add_prefix != FALSE )
 		{
-			$this->select = DMLBuilder::prepareSelect( $this->select, $add_prefix == true ? $this->name : $add_prefix  );
+			$this->select = Builder::prepareSelect( $this->select, $add_prefix == true ? $this->name : $add_prefix  );
 		}
 
 		return $this;
@@ -418,8 +362,8 @@ abstract class DML extends CI_Model
 	protected function dbCountRows()
 	{
 		$this->db->select( 'COUNT(*) as pocet', FALSE );
-		$result = $this->get_one();
-		$this->save_last_query();
+		$result = $this->dbGetOne();
+		$this->sendDebugMessage( 'počet vrácených řádků: ' . $result->pocet, 'dbCountRows' );
 		return $result->pocet;
 	}
 
@@ -434,7 +378,7 @@ abstract class DML extends CI_Model
 	{
 		if ( $this->data == null )
 		{
-			$error = new DMLException( DMLException::ERROR_DATA_NULL, DMLException::ERROR_NUMBER_DATA_NULL );
+			$error = new DBException( DBException::ERROR_DATA_NULL, DBException::ERROR_NUMBER_DATA_NULL );
 			$this->set_error( $error->getErrorMessage(), $error->getCode() );
 			$this->db->_reset_write();
 			$this->deleteAllData();
@@ -450,10 +394,11 @@ abstract class DML extends CI_Model
 
 		if ( !$this->disableValidation )
 		{
+			\Autoloader::$finder->find(__NAMESPACE__.'\ValidatorInterface');
 			if ( $method_insert )
-				$validator = new DMLValidatorInsert();
+				$validator = new ValidatorInsert();
 			else
-				$validator = new DMLValidatorUpdate();
+				$validator = new ValidatorUpdate();
 
 
 			$validator->set_data( $this->tableInfo, $this->data );
@@ -461,7 +406,7 @@ abstract class DML extends CI_Model
 			{
 				$validator->validate();
 			}
-			catch (DMLException $exc)
+			catch (DBException $exc)
 			{
 				$this->set_error( $exc->getErrorMessage(), $exc->getCode() );
 				$this->db->_reset_write();
@@ -504,14 +449,14 @@ abstract class DML extends CI_Model
 	{
 		if ( $this->data == null )
 		{
-			$error = new DMLException( DMLException::ERROR_DATA_NULL, DMLException::ERROR_NUMBER_DATA_NULL );
+			$error = new DBException( DBException::ERROR_DATA_NULL, DBException::ERROR_NUMBER_DATA_NULL );
 			$this->set_error( $error->getErrorMessage(), $error->getCode() );
 			$this->db->_reset_write();
 			$this->deleteAllData();
 			return FALSE;
 		}
 
-		$validator = new DMLValidatorInsert();
+		$validator = new ValidatorInsert();
 		if ( !$this->disableValidation )
 		{
 			try
@@ -522,7 +467,7 @@ abstract class DML extends CI_Model
 					$validator->validate();
 				}
 			}
-			catch (DMLException $exc)
+			catch (DBException $exc)
 			{
 				$this->set_error( $exc->getErrorMessage(), $exc->getCode() );
 				$this->db->_reset_write();
@@ -548,14 +493,14 @@ abstract class DML extends CI_Model
 	{
 		if ( !$this->disableValidation )
 		{
-			$validator = new DMLValidatorUpdate();
+			$validator = new ValidatorUpdate();
 			$validator->set_data( $this->tableInfo, $this->data );
 
 			try
 			{
 				$validator->validate();
 			}
-			catch (DMLException $exc)
+			catch (DBException $exc)
 			{
 				$this->set_error( $exc->getErrorMessage(), $exc->getCode() );
 				$this->db->_reset_write();
@@ -563,7 +508,7 @@ abstract class DML extends CI_Model
 			}
 		}
 
-		$this->db->set( $this->data, $this->escape );
+		$this->db->set( $this->data );
 		$this->db->update( $this->tableInfo->get_table_name() );
 		$this->save_last_query();
 		$this->log_operation();
@@ -594,6 +539,7 @@ abstract class DML extends CI_Model
 	public function start_transaction()
 	{
 		$this->db->trans_begin();
+		$this->sendDebugMessage( 'Transakce byla spustena.', 'Transaction' );
 		return $this;
 	}
 
@@ -604,6 +550,7 @@ abstract class DML extends CI_Model
 	public function stop_transaction()
 	{
 		$this->db->trans_commit();
+		$this->sendDebugMessage( 'Transakce byla odsouhlasena.', 'Transaction' );
 		return $this;
 	}
 
@@ -614,6 +561,7 @@ abstract class DML extends CI_Model
 	public function rollback_transaction()
 	{
 		$this->db->trans_rollback();
+		$this->sendDebugMessage( 'Transakce byla zamítnuta.', 'Transaction' );
 		return $this;
 	}
 
@@ -637,6 +585,7 @@ abstract class DML extends CI_Model
 	private function save_last_query()
 	{
 		$this->last_query[] = $this->db->last_query();
+		$this->sendDebugMessage( $this->db->last_query(), get_class( $this ) );
 	}
 
 	/**
@@ -711,13 +660,13 @@ abstract class DML extends CI_Model
 	 * @param String $message
 	 * @return \DML 
 	 */
-	protected function set_error($message, $code = DMLException::ERROR_NUMBER_GENERIC)
+	protected function set_error($message, $code = DBException::ERROR_NUMBER_GENERIC)
 	{
 		$this->error = array(
 			 'message' => $message,
 			 'code' => $code
 		);
-
+		$this->sendDebugMessage( $message, 'Error!' );
 		return $this;
 	}
 
@@ -798,7 +747,7 @@ abstract class DML extends CI_Model
 	/**
 	 * Vnori selekty do databazove vrstvy
 	 */
-	private function proceedSelectHook()
+	private function proceedSelects()
 	{
 		/*
 		 * Pokud neni zadny select, vytvori se TABLE_NAME.*
@@ -812,151 +761,14 @@ abstract class DML extends CI_Model
 		}
 	}
 
-	/**
-	 * Pripravi Join na pozadovanou tabulku
-	 * @param type $process
-	 */
-	private function proceedJoinConnections($process)
-	{
-		$tableName = $this->name;
-		/**
-		 * Zjistim, jakej sloupecek vlastne musim propojit
-		 */
-		if ( ($referencingColumn = $this->tableInfo->has_this_table_referencing( $process['arg'] )) == FALSE )
-		{
-			show_error( 'Join(): Tabulka ' . $tableName . ' neodkazuje na tabulku ' . $process['arg'] );
-		}
-		/**
-		 * Nyni musime ziskat nazev sloupecku, na ktery tabulka odkazuje
-		 */
-		$targetTableInfo = DMLBuilder::loadTableInfo( $process['arg'] );
-		$targetColumn = $targetTableInfo->has_foreign_table_referencing( $tableName );
-
-		//= Nyni poresime select
-		if ( is_null( $process['select'] ) )
-		{
-			$columns = $targetTableInfo->get_columns_names();
-			unset( $columns[$targetColumn] ); //= Nemusime znova stahovat IDcko, ktere uz je v cizim klici
-		}
-		else
-			$columns = $process['select'];
-
-		//= Nemame jistotu, ze se nejake sloupce nebudou prekryvat, radsi 
-		//= vsechny vlozeny zprefixujeme jejich tabulkou
-		$this->select = $this->prepareSelect( $this->select, $this->name );
-
-
-		$columns = $this->prepareSelect( $columns, $process['arg'], $process['arg'] . '_' );
-		$this->db->select( $columns )
-				  ->join( $process['arg'], $process['arg'] . '.' . $targetColumn . ' = ' . $tableName . '.' . $referencingColumn );
-	}
-
-	/**
-	 * Pripravi MN Join
-	 * @param type $hook
-	 */
-	private function proceedJoinMNConnections($hook, &$result)
-	{
-		FB::info( $result, 'RESULT' );
-		$mainTable = $hook['arg'];
-		$dataWhere = array();
-		$myTables = $this->tableInfo->get_incoming_foreign_data();
-		$foreignTableInfo = DMLBuilder::loadTableInfo( $mainTable );
-		foreach ( $myTables as $column => $tables )
-		{
-			//= Musime ziskat vsechny WHERE argumenty z resultu
-			foreach ( $result as $rows )
-			{
-				if ( !isset( $rows->$column ) )
-					show_error( 'proceedJoinMNConnections(): v SELECTU neni sloupec ' . $column );
-				$dataWhere[] = $rows->$column;
-			}
-			foreach ( $tables as $table )
-			{
-
-				$targetColumn = $this->tableInfo->get_table_name() . '_' . $column;
-				$targetTable = $table;
-				// Nyni vim co hledat, jdu na to!
-				//= Mrknu do BOOKS - stahnu vscnhy IN
-				//= je tam books_list?
-				if ( ($mainColumn = $foreignTableInfo->has_foreign_table_referencing( $targetTable )) !== false )
-				{
-					//= Musime vytvorit radnej select
-					if ( $hook['escape'] )
-					{
-						$select = $this->prepareSelect( $hook['select'], $mainTable );
-						$select[] = $targetColumn;
-					}
-					else
-					{
-						$select = $hook['select'];
-						$select .= ',' . $targetColumn;
-					}
-
-					//= Vime, ze tato tabulka ($targetTable) je prostrednikem!!
-					$this->db->join( $targetTable, $targetTable . '.' . $targetColumn . '=' . $this->tableInfo->get_table_name() . '.' . $column )
-							  ->join( $mainTable, $mainTable . '.' . $mainColumn . '=' . $targetTable . '.' . $mainTable . '_' . $mainColumn )
-							  ->select( $select, $hook['escape'] )
-							  ->where_in( $this->tableInfo->get_table_name() . '.' . $column, $dataWhere );
-
-					if ( $hook['eval'] != false && is_callable( $hook['eval'] ) )
-						$hook['eval']();
-
-					$foreignResult = $this->db->get( $this->name );
-
-					$this->log_operation( $foreignResult );
-
-					break 2;
-				}
-			}
-			show_error( 'dbJoinMN(): Neexistuje zadna MN reference z tabulky ' . $this->name . ' na tabulku ' . $mainTable );
-		}
-		//= Nyni musime sjednotit foreignResult s resultem
-		$foreignResult = $foreignResult->result();
-		foreach ( $result as &$row )
-		{
-			foreach ( $foreignResult as $k => &$r )
-			{
-				if ( $row->$column == $r->$targetColumn )
-				{
-					unset( $r->$targetColumn );
-					$row->{$mainTable}[] = $r;
-					unset( $foreignResult[$k] );
-				}
-			}
-
-			if ( !isset( $row->{$mainTable} ) )
-				$row->{$mainTable} = false;
-		}
-		FB::info( $result );
-	}
-
-	/**
-	 * Vsem selektum to prida prefix a vrati array
-	 * @param Array/String $select
-	 * @param String $tablePrefix
-	 * @return Array
-	 */
-	private function prepareSelect($select, $tablePrefix, $AS_prefix = null)
-	{
-
-		if ( $select == null )
-			return array($tablePrefix . '.*');
-
-		if ( !is_array( $select ) )
-			$select = explode( ',', $select );
-		foreach ( $select as &$s )
-		{
-			$s = (strpos( $s, '.' ) === FALSE ? $tablePrefix . '.' . trim( $s, ' ' ) : $s) . ($AS_prefix != null ? ' AS ' . $AS_prefix . $s : '');
-		}
-
-		return $select;
-	}
-
 	protected function change_table($table_name)
 	{
-		$this->tableInfo = DMLBuilder::loadTableInfo( $table_name );
-		$this->name = $table_name;
+		if ( $table_name != $this->name )
+		{
+			$this->tableInfo = Builder::loadTableInfo( $table_name );
+			$this->name = $table_name;
+			$this->sendDebugMessage( 'Byla změněna tabulka na ' . $table_name, 'Change Table' );
+		}
 		return $this;
 	}
 
@@ -986,6 +798,13 @@ abstract class DML extends CI_Model
 		}
 
 		return $string;
+	}
+
+	private function sendDebugMessage($message, $label)
+	{
+		if ( self::$DEBUG )
+			\FB::info( $message, '(DML) ' . $label );
+		return $this;
 	}
 
 }

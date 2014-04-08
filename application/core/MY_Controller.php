@@ -45,24 +45,16 @@ class My_Controller extends CI_Controller
 	function __construct()
 	{
 		parent::__construct();
-		Autoloader::loadStatic( 'helpers/head_helper', "head::init" );
-		Autoloader::loadStatic( 'libraries/User', 'User::init' );
-		Autoloader::loadStatic( 'models/logs', 'Logs::init' );
+		Head::init();
+		Logs::init();
 
 		if ( $this->uri->segment( 1 ) === "administrace" )
 		{
 			$this->is_administration = TRUE;
-			$this->administration_bootstrap();
+			//$this->administration_bootstrap();
 		}
 
-		if ( $this->lang->lang() == "en" )
-		{
-			Head::remove()->js( 'http://www.myslimnatebe.cz/javascript/file/mnt_javascript.php' );
-			Head::add()->js( array(
-				 'url' => 'http://www.wisheer.com/javascript/file/mnt_javascript.php',
-				 'except' => "administrace"
-			) );
-		}
+		
 	}
 
 	function administration_bootstrap()

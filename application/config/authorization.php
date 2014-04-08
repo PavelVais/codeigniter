@@ -17,6 +17,17 @@ $config['check_unique_username'] = TRUE;
 $config['check_unique_email'] = TRUE;
 $config['email_activation'] = TRUE;
 
+
+/*
+  | -------------------------------------------------------------------
+  |  URCENI ROLI
+  | -------------------------------------------------------------------
+ *  Role k uctu muze byt v samostatne tabulce, nebo je primo u uctu
+ * Pokud je primo u uctu, nechte kolonku prazdnou, v druhem pripade
+ * napiste v jake tabulce role je
+ */
+$config['roleTable'] = 'roles';
+
 /*
 |--------------------------------------------------------------------------
 | Facebook authorization

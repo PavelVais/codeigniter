@@ -141,32 +141,32 @@ class Retina
 	{
 		if ( strpos( $name, 'http' ) !== false )
 		{
-
 			$path_parts = pathinfo( $name );
 		}
 		else
 		{
 			$path_parts = pathinfo( self::DEFAULT_IMG_FOLDER . $name );
 		}
+		
 		$filename = $path_parts['dirname'] . '/' . $path_parts['filename'];
 		$extension = $path_parts['extension'];
 
 		if ( self::isRetina() || (!self::APPLY_HIGH_RESOLUTION_IMAGES && self::isHighDPI()) )
 		{
 			//= Huray! retina resolution will be used!
-			return $filename . self::DEFAULT_RETINA_POSTFIX . '.' . $extension;
+			return base_url($filename . self::DEFAULT_RETINA_POSTFIX . '.' . $extension);
 		}
 		else
 
 		if ( self::APPLY_HIGH_RESOLUTION_IMAGES && self::isHighDPI() )
 		{
 			//= HD display
-			return $filename . self::DEFAULT_HIGH_POSTFIX . '.' . $extension;
+			return base_url($filename . self::DEFAULT_HIGH_POSTFIX . '.' . $extension);
 		}
 		else
 		{
 			//= Its low-res display so normal picture will be used
-			return $filename . '.' . $extension;
+			return base_url($filename . '.' . $extension);
 		}
 	}
 

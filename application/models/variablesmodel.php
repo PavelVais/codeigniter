@@ -5,7 +5,7 @@
  * @author Pavel Vais
  * 
  */
-class VariablesModel extends DML
+class VariablesModel extends DML\Base
 {
 
 	private $without_user;

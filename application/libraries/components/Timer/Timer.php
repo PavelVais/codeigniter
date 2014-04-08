@@ -1,97 +1,134 @@
 <?php
+
+namespace Benchmark;
+
 class Timer
 {
-	static $start;
-	static $marks;
-	static function start()
-	{
-		
-	}
-	
-	static function stop()
-	{
-		
-	}
-	
-	var $start;
-	var $pause_time;
-	private $marks;
 
-	/*  start the timer  */
+	static $timers = array();
 
-	function timer($start = 0)
+	static function start($benchmarkName = '')
 	{
-		$this->marks = array();
-		if ( $start )
+		self::$timers[] = new TimeHolder( self::getTime(), $benchmarkName );
+	}
+
+	static function stop($benchmarkName = '')
+	{
+		$timer = & self::getTimer( $benchmarkName );
+		$result = $timer->get( self::getTime() );
+		self::FBPrint( $result );
+	}
+
+	static function mark($label, $benchmarkName = '')
+	{
+		$timer = & self::getTimer( $benchmarkName );
+		$timer->addMark( $label, self::getTime() );
+	}
+
+	private static function FBPrint($result)
+	{
+		\FB::group( 'benchmark ' . $result['name'] );
+		\FB::info( 'marks:' );
+
+		if ( empty( $result['marks'] ) )
 		{
-			$this->start();
+			\FB::info( "	no marks." );
+		}
+		$index = 1;
+		foreach ( $result['marks'] as $mark )
+		{
+			\FB::info( "	$index. " . $mark['diff'] . ' sec. (' . $mark['percent'] . '%) label: "' . $mark['label'] . '" | total time: ' . $mark['overall'] . ' sec.' );
+			$index++;
+		}
+		\FB::info( '==========================================' );
+		\FB::info( 'IN TOTAL: ' . $result['total'] . ' sec' );
+		\FB::groupEnd();
+	}
+
+	static function reset()
+	{
+		static $timers = array();
+	}
+
+	/**
+	 * @param string $name
+	 * @return TimeHolder
+	 */
+	private static function getTimer($name)
+	{
+		if ( $name == '' )
+			return (self::$timers[0]);
+
+		foreach ( self::$timers as &$timer )
+		{
+			if ( (string) $timer == $name )
+				return $timer;
 		}
 	}
 
-	/*  start the timer  */
-
-	function start()
-	{
-		$this->start = $this->get_time();
-		$this->pause_time = 0;
-	}
-
-	function mark($label = '')
-	{
-		$this->marks[] = array(
-			 'label' => $label == '' ? count( $this->marks ) : $label,
-			 'time' => $this->get()
-		);
-	}
-
-	/*  pause the timer  */
-
-	function pause()
-	{
-		$this->pause_time = $this->get_time();
-	}
-
-	/*  unpause the timer  */
-
-	function unpause()
-	{
-		$this->start += ($this->get_time() - $this->pause_time);
-		$this->pause_time = 0;
-	}
-
-	/*  get the current timer value  */
-
-	function get($decimals = 8)
-	{
-		return round( ($this->get_time() - $this->start ), $decimals );
-	}
-
-	/*  format the time in seconds  */
-
-	function get_time()
+	private static function getTime()
 	{
 		list($usec, $sec) = explode( ' ', microtime() );
 		return ((float) $usec + (float) $sec);
 	}
 
-	function result()
+}
+
+class TimeHolder
+{
+
+	private $marks = array();
+	private $firstTime;
+	private $name;
+
+	public function __construct($time, $label = '')
 	{
-		FB::group( 'benchmark' );
-		FB::info( 'marks:' );
+		$this->name = $label;
+		$this->firstTime = $time;
+	}
 
-		if ( empty( $this->marks ) )
-		{
-			FB::info( '	no marks.' );
-		}
+	public function addMark($label, $time)
+	{
+		$this->marks[] = array(
+			 'label' => $label == '' ? count( $this->marks ) + 1 : $label,
+			 'time' => $time
+		);
+		return $this;
+	}
 
-		$beforeTime = 0;
-		foreach ( $this->marks as $mark )
+	public function get($time)
+	{
+		$overall = $time - $this->firstTime;
+		$lastTime = $this->firstTime;
+
+		foreach ( $this->marks as &$mark )
 		{
-			FB::info( '		[' . $mark['label'] . '] => ' . $mark['time'] . ' sec. ' . "(diff: " . round( $mark['time'] - $beforeTime, 8 ) . " sec.)" );
-			$beforeTime = $mark['time'];
+			$mark['time'] = $this->round( $mark['time']);
+			$mark['overall'] = $this->round( $mark['time'] -  $this->firstTime );
+			$mark['diff'] = $this->round( $mark['time'] - $lastTime );
+			$mark['percent'] = $this->round( 100 * $mark['diff'] / $overall, 2 );
+			$lastTime = $mark['time'];
 		}
-		FB::info( 'IN TOTAL: ' . $this->get() . ' sec' );
-		FB::groupEnd();
+		return array(
+			 'marks' => $this->marks,
+			 'total' => $this->round($overall,8),
+			 'firstTime' => $this->firstTime,
+			 'endTime' => $time,
+			 'name' => $this->name
+		);
+	}
+
+	public function round($number, $decimal = 8)
+	{
+		if ( $decimal > 5 )
+			return sprintf( '%f', round( $number, $decimal ) );
+		else
+			return round( $number, $decimal );
+	}
+
+	public function __toString()
+	{
+		return $this->name;
 	}
 
 }

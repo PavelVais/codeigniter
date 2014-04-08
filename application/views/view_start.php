@@ -37,6 +37,7 @@
 							
 					</ul>
 					<li>Přidána knihovna na user autologing. + sql create table dotaz</li>
+					<li>Přidán Benchmark/Timer</li>
 						
 				</ul>
 				<h2>pack verze: 1.1.1</h2>

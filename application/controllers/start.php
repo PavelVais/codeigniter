@@ -42,12 +42,18 @@ class Start extends My_Controller
 
 	public function database()
 	{
+		\Benchmark\Timer::start('testovaci timer');
 		$this->load->database();
+		\Benchmark\Timer::mark('spusteni db');
 		$TM = new DML\Model\TestModel;
+		\Benchmark\Timer::mark('spusteni TestModelu');
 		Autoloader::$finder->cache->commit();
+		\Benchmark\Timer::mark('ulozeni cache');
 		DML\Base::$DEBUG = true;
-		$TM->sav();
+		//$TM->sav();
 		$this->lang->view( 'homepage/view_maintenance' );
+		\Benchmark\Timer::mark('vykresleni view');
+		\Benchmark\Timer::stop();
 		//FB::info($TM->get_all(),'return');
 	}
 

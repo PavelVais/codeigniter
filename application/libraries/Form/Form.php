@@ -207,19 +207,24 @@ class Form
 
 	/**
 	 * 
-	 * @param string $object
+	 * @param string/HTMLConstructor $object
 	 * @return \Form\Form
 	 */
-	public function addHook($string,$label = '')
+	public function addHook($string, $label = '')
 	{
+		if ( $string instanceof \HTMLconstructor )
+		{
+			$string = $string->generate();
+		}
+
 		$data = array(
 			 'metadata' => array(
 				  'type' => 'hook',
 				  'label' => $label
 			 ),
 			 'data' => array(
-				  'name' => md5($string),
-				  'value' => $string,
+				  'name' => md5( $string ),
+				  'value' => $string
 			 )
 		);
 		$this->add_element( $data );
@@ -659,5 +664,5 @@ class Form
 		$this->elements = $elements;
 		return $this;
 	}
-	
+
 }

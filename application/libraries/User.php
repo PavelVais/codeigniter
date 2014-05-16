@@ -64,7 +64,7 @@ final class User {
 		if ( $status && self::$ci->config->item( 'secure_authorization', 'authorization' ) )
 			if ( self::generate_secure_token() != self::$ci->session->userdata( 'token' ) )
 			{
-				//FB::info(self::generate_secure_token()." - ".self::$ci->session->userdata( 'token' ),"is_logged_in logout");
+				FB::info(self::generate_secure_token()." - ".self::$ci->session->userdata( 'token' ),"is_logged_in logout");
 				self::logout();
 				return FALSE;
 			}
@@ -79,7 +79,7 @@ final class User {
 	final static public function get_role()
 	{
 		self::load_profile_data();
-		return self::$user_data['role'];
+		return self::$user_data['role_name'];
 	}
 
 	final static public function get_profile_data($name)
@@ -232,7 +232,6 @@ final class User {
 
 
 		self::$ci->session->set_userdata( $session );
-		FB::info( $autologin, "info var autologin" );
 		if ( $autologin )
 			self::create_autologin( $user->id );
 
@@ -427,7 +426,8 @@ final class User {
 		{
 
 			$data = unserialize( $cookie );
-
+			\FB::info($data,'AUTOLOGIN');
+			\FB::info( md5( $data['key'] ),'md5 key');
 			if ( isset( $data['key'] ) AND isset( $data['user_id'] ) )
 			{
 

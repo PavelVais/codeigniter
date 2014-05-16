@@ -2,7 +2,7 @@
 
 namespace Form;
 
-class BootstrapTemplate implements TemplateInterface
+class BootstrapTemplate extends Template
 {
 
 	private $options;
@@ -33,7 +33,7 @@ class BootstrapTemplate implements TemplateInterface
 	public function generate($element, $withLabel = true)
 	{
 		$this->currentElement = $element;
-		$htmlFormGroup = \HTMLElement::open( 'div' )->addAttribute( 'class', 'form-group' )->setFirstIndent( 2 );
+		$htmlFormGroup = \HTML\Element::open( 'div' )->addAttribute( 'class', 'form-group' )->setFirstIndent( 2 );
 
 		if ( ($opt = $this->getOption( self::OPTION_ROW_TYPE )) !== '' )
 		{
@@ -62,7 +62,7 @@ class BootstrapTemplate implements TemplateInterface
 	 */
 	public function generateElement($element)
 	{
-		$element = \HTMLElement::open( 'div' )->addAttribute( 'class', $this->getOption( self::OPTION_INPUT_CLASS ) )
+		$element = \HTML\Element::open( 'div' )->addAttribute( 'class', $this->getOption( self::OPTION_INPUT_CLASS ) )
 				  ->appendString( $element['html'] );
 
 		return $element;
@@ -100,46 +100,10 @@ class BootstrapTemplate implements TemplateInterface
 	public function generateLabel($element)
 	{
 		//'<label class="col-sm-2 control-label" for="inputEmail3">Email</label>';
-		return $labelConstructor = \HTMLElement::open( 'label' )
+		return $labelConstructor = \HTML\Element::open( 'label' )
 				  ->addAttribute( 'for', 'frm_' . $element['data']['name'] )
 				  ->addAttribute( 'class', $this->getOption( self::OPTION_LABEL_CLASS ) )
 				  ->appendToAttribute( 'class', 'control-label' )
 				  ->appendString( $element['metadata']['label'] );
 	}
-
-	public function setOnce($name, $value, $forElement = null)
-	{
-		$this->tempOptions[($forElement == null ? 0 : $forElement)][$name] = $value;
-		return $this;
-	}
-
-	public function setOption($name, $value)
-	{
-		$this->options[$name] = $value;
-		return $this;
-	}
-
-	/**
-	 * Vrati nastaveni. 
-	 * @param string $name
-	 * @return \Form\BootstrapTemplate
-	 */
-	private function getOption($name)
-	{
-
-		if ( isset( $this->tempOptions[$this->currentElement['data']['name']][$name] ) )
-		{
-			return $this->tempOptions[$this->currentElement['data']['name']][$name];
-		}
-		if ( isset( $this->tempOptions[0][$name] ) )
-		{
-			return $this->tempOptions[0][$name];
-		}
-		elseif ( isset( $this->options[$name] ) )
-		{
-			return $this->options[$name];
-		}
-		return '';
-	}
-
 }

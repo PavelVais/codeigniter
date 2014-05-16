@@ -61,5 +61,8 @@ $route['^cs$'] = $route['default_controller'];
 $route['^en$'] = $route['default_controller'];
 
 
+$route['administrace/articles/list'] = 'administrace/articles/entries';
+
+
 /* End of file routes.php */
 /* Location: ./application/config/routes.php */

@@ -146,8 +146,9 @@ $config['header']['meta'][] = array(
  */
 
 $config['header']['css'][] = array(
-	 'url' => array('bootstrap.min.css','font-awesome.min.css'),
+	 'url' => array('bootstrap.min.css', 'font-awesome.min.css'),
 	 'cover' => 'all',
+	 'except' => 'administrace'
 );
 $config['header']['css'][] = array(
 	 'url' => 'mystyle.css',
@@ -155,8 +156,23 @@ $config['header']['css'][] = array(
 	 'except' => 'administrace'
 );
 $config['header']['css'][] = array(
-	 'url' => 'administration.css',
+	 'url' => array(
+		  'administration/bootstrap.min.css',
+		  'font-awesome.min.css',
+		  'administration/plugins/timeline/timeline.css',
+		  'administration/plugins/morris/morris-0.4.3.min.css',
+		  'administration/select2/select2.css',
+		  'administration/summernote.css',
+		  'administration/admin.css',
+		  
+	 ),
 	 'cover' => 'administrace',
+);
+$config['header']['css'][] = array(
+	 'url' => array(
+		  'administration/login.css',
+	 ),
+	 'cover' => 'administrace/login',
 );
 
 /**
@@ -181,20 +197,36 @@ $config['header']['js'][] = array(
 		  'http://code.jquery.com/jquery-1.10.2.min.js',
 		  'plugins/jquery.confirm.js'
 	 ),
-	 'deferred' => true
+	 'deferred' => true,
+	 'except' => 'administrace'
 );
 
-$config['header']['js'][] = 'ci.js';
+$config['header']['js'][] = array(
+	 'url' => array(
+		  'http://code.jquery.com/jquery-1.10.2.min.js',
+		  'administration/bootstrap.min.js',
+		  'administration/plugins/metisMenu/jquery.metisMenu.js',
+		  'administration/plugins/morris/raphael-2.1.0.min.js',
+		  'administration/plugins/morris/morris.js',
+		  'administration/summernote.min.js',
+		  'administration/select2/select2.min.js',
+		  'administration/select2/select2_locale_cs.js',
+		  'administration/admin.js'
+	 ),
+	 'cover' => 'administrace'
+);
 
-		  /*
-			 |--------------------------------------------------------------------------
-			 | VIEWS:
-			 | Diky views, muzete volat cele kusy kodu, ktere jsou ulozeny ve VIEW slozce.
-			 | Hlavni argumentem musi byt cesta k VIEW souboru.
-			 |--------------------------------------------------------------------------
-			*/
+//$config['header']['js'][] = 'ci.js';
+
+/*
+  |--------------------------------------------------------------------------
+  | VIEWS:
+  | Diky views, muzete volat cele kusy kodu, ktere jsou ulozeny ve VIEW slozce.
+  | Hlavni argumentem musi byt cesta k VIEW souboru.
+  |--------------------------------------------------------------------------
+ */
 //= HTML5 a Respond.js for fuckin IE
-		  $config['header']['view'][] = 'comp/header/html5';
+$config['header']['view'][] = 'comp/header/html5';
 $config['header']['view'][] = 'comp/header/retina';
 
 //= GA

@@ -30,7 +30,7 @@ class ConfirmModel extends DML\Base
 	 * Udava nazev skupiny, ktera se aplikuje na vsechny mozne funkce.
 	 * @var String
 	 */
-	private $name;
+	private $n;
 
 	/**
 	 * Pridava tagy k jednotlivym potvrzeni
@@ -45,7 +45,7 @@ class ConfirmModel extends DML\Base
 	public function __construct()
 	{
 
-		parent::__construct( 'confirm' );
+		parent::__construct( 'users' );
 		$this->ci->load->helper( 'string' );
 		$this->tags = array();
 	}
@@ -171,7 +171,7 @@ class ConfirmModel extends DML\Base
 	 */
 	public function set_group($name)
 	{
-		$this->name = $name;
+		$this->n = $name;
 		return $this;
 	}
 
@@ -201,7 +201,7 @@ class ConfirmModel extends DML\Base
 
 		$this->_check_group_where();
 
-		return $this->db->delete( $this->name );
+		return $this->db->delete( $this->n );
 	}
 	
 	public function get_confirm_by_tags($tags)
@@ -223,7 +223,7 @@ class ConfirmModel extends DML\Base
 			$this->db->where( 'tags', $this->_prepare_tags() );
 
 		$this->_check_group_where();
-		$this->db->delete( $this->name );
+		$this->db->delete( $this->n );
 
 		return $this;
 	}
@@ -249,8 +249,8 @@ class ConfirmModel extends DML\Base
 	 */
 	private function _check_group_where()
 	{
-		if ( $this->name != null )
-			$this->db->where( "group", $this->name );
+		if ( $this->n != null )
+			$this->db->where( "group", $this->n );
 
 		return $this;
 	}
@@ -327,7 +327,7 @@ class ConfirmModel extends DML\Base
 	public function clear_data()
 	{
 		$this->tags = array();
-		$this->name = null;
+		$this->n = null;
 	}
 
 }

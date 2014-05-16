@@ -147,7 +147,6 @@ class Generator
 			case 'hidden':
 				return $function( $element['data']['name'], $element['data']['value'], $element['data'] );
 			case 'dropdown':
-				\FB::info( $element, '$element' );
 				return $function( $element['data']["name"], $element['data']['options'], $element['data']['default'], $element['data'] );
 			case 'submit':
 				return $function( $element['data'] );

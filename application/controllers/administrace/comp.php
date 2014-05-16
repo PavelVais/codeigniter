@@ -48,10 +48,10 @@ class Comp extends My_Controller {
 	{
 		$form = new Form( "administrace/uzivatele/propojeni" );
 		$form->addText( "username", "username (login):", 20, 20 )
-			   ->set_rule( FORM::RULE_FILLED, "Pro spojení účtů musíte napsat název druhého účtu." )
+			   ->setRule( FORM::RULE_FILLED, "Pro spojení účtů musíte napsat název druhého účtu." )
 			   ->addHidden( "source_id", $id )
 			   ->setSubmit( "submit", "spojit účty" )
-			   ->set_attribute( "class", "button link" );
+			   ->setAttribute( "class", "button link" );
 
 		return $form;
 	}
@@ -68,7 +68,7 @@ class Comp extends My_Controller {
 
 		$form->setDestination( "administrace/uzivatele/zabanovat" )
 			   ->setSubmit( "submit", ($ban ? "zabanovat" : "odbanovat" ) )
-			   ->set_attribute( "submit", "class", "button " . ($ban ? "ban" : "unban") );
+			   ->setAttribute( "submit", "class", "button " . ($ban ? "ban" : "unban") );
 
 		return $form;
 	}

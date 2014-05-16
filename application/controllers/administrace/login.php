@@ -17,14 +17,14 @@ if ( !defined( 'BASEPATH' ) )
  */
 class Login extends MY_Controller
 {
-
+	
 	function __construct()
 	{
 		parent::__construct();
 		$this->load->helper( array('form', 'url') );
 		$this->load->library( 'session' );
-		$this->load->library( 'message' );
 		$this->load->language( 'authorization' );
+		
 	}
 
 	/**
@@ -58,9 +58,12 @@ class Login extends MY_Controller
 				redirect( 'administrace' );
 			}
 		}
+		
+		$data['title'] = 'Administrace';
 
-		$data['form'] = $this->createFormLogin();
+		$data['fgenerator'] = $this->createFormLogin();
 		$this->load->view( 'administrace/view_login', $data );
+		
 	}
 
 	public function logmein()
@@ -93,25 +96,31 @@ class Login extends MY_Controller
 
 	private function createFormLogin()
 	{
-		$form = new Form( 'administrace/login/logmein' );
+		$form = new Form\Form( 'administrace/login/logmein' );
 		$form->addText( 'login', 'Login', 30, 50 )
-				  ->set_rule( Form::RULE_FILLED, 'Login is required.' )
-				  ->set_rule( Form::RULE_MIN_CHARS, 'Login must have at least %argument% chars.', 5 )
-				  ->set_attribute( 'placeholder', 'uživatelské jméno' )
-				  ->set_attribute( 'class', 'form-control' )
-				  ->set_form_attribute('class', 'form-horizontal');
+				  ->setRule( Form\Form::RULE_FILLED, 'Login is required.' )
+				  ->setRule( Form\Form::RULE_MIN_CHARS, 'Login must have at least %argument% chars.', 5 )
+				  ->setAttribute( 'placeholder', 'uživatelské jméno' )
+				  ->setAttribute( 'class', 'form-control' )
+				  ->set_form_attribute( 'class', 'form-horizontal' );
 
 		$form->addPassword( 'password', 'Password', 30 )
-				  ->set_rule( Form::RULE_FILLED, 'Password is required.' )
-				  ->set_attribute( 'class', 'form-control' )
-				  ->set_attribute( 'placeholder', 'heslo' );
+				  ->setRule( Form\Form::RULE_FILLED, 'Password is required.' )
+				  ->setAttribute( 'class', 'form-control' )
+				  ->setAttribute( 'placeholder', 'heslo' );
 
 		$form->addCheckbox( 'remember', 1, false, "zapamatovat si mě" );
 		$form->set_form_attribute( "class", "form-horizontal" );
 
 		$form->setSubmit( 'submit', 'Přihlásit se' )
-				  ->set_attribute( 'class', 'btn btn-large btn-primary' );
-		return $form;
+				  ->setAttribute( 'class', 'btn btn-large btn-primary' );
+		
+		$l = new Form\Generator($form);
+		$l->setTemplate(new \Form\BootstrapTemplate());
+		$l->template->setOption(\Form\BootstrapTemplate::OPTION_LABEL_CLASS, 'col-sm-4');
+		$l->template->setOption(\Form\BootstrapTemplate::OPTION_INPUT_CLASS, 'col-sm-6');
+		
+		return $l;
 	}
 
 }

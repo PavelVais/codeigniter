@@ -9,6 +9,29 @@
 		<div class="hero-unit">
 			<h1 class=""><i class='fa fa-bullhorn'></i> Codeigniter <?php echo CI_VERSION ?> je nainstalován a běží...</h1>
 			<div class="well">
+				<h2>pack verze: 1.4.0</h2>
+				<ul>
+					<li>HTMLElement změněn na HTML\Element a třída HTMLConstruct byla odstraněna.</li>
+					<li>Byl přidán ModelSorter, který umožňuje lehce měnit v databízi pořadí určitých prvků (vhodné pro změny pořadí vypisovaných položek atp.)</li>
+					<li>Třída message byla smazána a nahrazena třídou FlashMessage (obsahuje statické funkce ::set() a ::get()</li>
+					<li>Třída UserAutoLoginModel byla upravena a tím opravena.</li>
+					<li>Projekt ci_administrace se pomalu přesouvá do submodulu administrace v tomto projektu. <?php echo anchor('administrace','odkaz na administraci') ?></li>
+				</ul>
+				<h2>pack verze: 1.3.0</h2>
+				<ul>
+					<li>změny u HTMLElement:</li>
+						<ul>
+							<li>Pokud je apostrof (") v hodnotě např. u classu, zvolí se jiné ohraničení, takže se html element vždy správně vypíše.</li>
+							<li>do prikazu addAttribute je mozne vlozit array a objekt. Ten je nasledne preveden do JSON formatu.</li>
+							<li>byl přidán příkaz appendToAttribute($name,$value), který nepřemaže, ale vloži již do existujícího atributu další část</li>
+						</ul>
+					<li>Kompletní předělání Form Generatoru:</li>
+					<ul>
+						<li>Nyní je oddělen generátor od formuláře.</li>
+						<li>Form generator pro generování využíva form\template ktery ma interface templateInterface.</li>
+						<li>Template se vlozi do generatoru pres $generator->setTemplate(new BootstrapTemplate) (napr.)</li>
+					</ul>
+				</ul>
 				<h2>pack verze: 1.2.0</h2>
 				<ul>
 					<li>Formulářový prvek dropdown a hidden nyní podporují extra atributy</li>
@@ -121,7 +144,7 @@ Autoloader::$finder->find($file);
 				
 			</div>
 			<div class="well">
-				<h2>HTMLElement plugin:</h2>
+				<h2>\HTML\Element plugin:</h2>
 				<p>Skvělá static třída pro buildování HTML prvků.
 					<br>
 					volá se přes: $this->load->helper('htmlelement');
@@ -131,8 +154,8 @@ Autoloader::$finder->find($file);
 				</p>
 				<h3>Příklad:</h3>
 				<pre>
-$a = HTMLElement::open('a')->addAttribute('href',base_url('hlavnistrana'));
-$img = HTMLElement::open( 'img' )->isPair( false )
+$a = \HTML\Element::open('a')->addAttribute('href',base_url('hlavnistrana'));
+$img = \HTML\Element::open( 'img' )->isPair( false )
 				  ->addAttribute( 'class', 'big' )
 				  ->addAttribute( 'src','xxx.jpg');
 $a->append($img)->generate();
@@ -146,14 +169,14 @@ $a->append($img)->generate();
 				
 				<h3>Příklad 2, využití příkazu next() a appendString():</h3>
 				<pre>
-$div = HTMLElement::open('div')
+$div = \HTML\Element::open('div')
 	->addAttribute('id','main');
 
-$div2 = HTMLElement::open('div');
+$div2 = \HTML\Element::open('div');
 
 $div->next($div2);
 $div2->appendString('&lt;h1&gt;Titulek&lt;/h1&gt;')	// appendString vlozi pouze string
-		->append(HTMLElement::open('p')
+		->append(\HTML\Element::open('p')
 		->appendString('Text v paragrafu'));
 				</pre>
 				Vygeneruje:

@@ -33,6 +33,8 @@ class Start extends My_Controller
 		$data = array();
 		$this->load->view( 'view_start', $data );
 	}
+	
+	
 
 	public function database()
 	{

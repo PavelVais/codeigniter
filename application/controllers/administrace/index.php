@@ -25,30 +25,18 @@ class Index extends My_Controller
 	function __construct()
 	{
 		parent::__construct();
-		$this->load->library( 'message' );
 	}
 
 	public function index()
 	{
-		$cm = new ConfessionModel();
-		$hm = new HashtagsModel();
-		$data['count_confessions'] = $cm->count();
-		$data['confessions'] = $cm->get_new();
-		$data['hashtags'] = $hm->get();
-		$data['count_hashtags'] = $hm->count();
+		$data = array();
+		/*$gapi = new gapi('vaispavel@gmail.com', 'b3d2d1f3g5g6d2');
+		$gapi->requestReportData('67920161',array('browser','browserVersion'),array('pageviews','visits'));
+		
+		\FB::info($gapi->getResults(),'$gapi->getResults()');*/
 		$this->load->view( 'administrace/view_dashboard', $data );
 	}
 
-	/**
-	 * Obnovi zacachovany data na hlavni strance
-	 */
-	public function renew_dashboard_data()
-	{
-		$this->cache->delete( "administrace_dashboard_data" );
-		redirect("administrace");
-	}
-		
-	
 }
 
 /* End of file welcome.php */

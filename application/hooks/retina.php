@@ -53,7 +53,6 @@ class Retina
 
 	public function init()
 	{
-		self::$CI->load->helper('htmlelement');
 		self::$ratio = self::$CI->input->cookie( self::COOKIE_NAME );
 		if ( !self::$ratio )
 		{
@@ -110,7 +109,7 @@ class Retina
 
 		$class = self::DEFAULT_CLASS_NAME . ($class == null ? '' : ' ' . $class);
 
-		$element = HTMLElement::open( 'img' )->isPair( false )
+		$element = \HTML\Element::open( 'img' )->isPair( false )
 				  ->addAttribute( 'class', $class );
 		if ( $height != null )
 		{

@@ -5,7 +5,7 @@
  */
 class UserAutologinModel extends DML\Base
 {
-
+	
 	/**
 	 * Konstruktor tridy,
 	 * nacte helper string. 
@@ -13,6 +13,7 @@ class UserAutologinModel extends DML\Base
 	public function __construct()
 	{
 		//= Nastaveni tabulky users
+		self::$DEBUG = true;
 		parent::__construct( 'user_autologin' );
 	}
 
@@ -26,10 +27,10 @@ class UserAutologinModel extends DML\Base
 	 */
 	function get($user_id, $key)
 	{
-		$this->db->select( 'users.id' )
-				  ->select( 'users.username' )
-				  ->select( 'users.email' )
-				  ->join( 'users', $this->name . '.user_id = users.id' )
+		$this->db->select( 'user.id' )
+				  ->select( 'user.username' )
+				  ->select( 'user.email' )
+				  ->join( 'user', $this->name . '.user_id = user.id' )
 				  ->where( $this->name . '.user_id', $user_id )
 				  ->where( $this->name . '.key_id', $key );
 		return parent::dbGetOne();
@@ -48,7 +49,11 @@ class UserAutologinModel extends DML\Base
 				  ->addData( 'key_id', $key )
 				  ->addData( 'user_agent', substr( $this->input->user_agent(), 0, 149 ) )
 				  ->addData( 'last_ip', $this->input->ip_address() );
-		return $this->save( true );
+		
+		//= primary musi byt neco jineho aby misto updatu byl insert
+		$this->tableInfo->primary_column = '';
+		
+		return $this->save( );
 	}
 
 	/**
@@ -92,5 +97,3 @@ class UserAutologinModel extends DML\Base
 	}
 
 }
-
-?>

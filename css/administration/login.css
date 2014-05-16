@@ -1,0 +1,10 @@
+body {
+	background: url('images/login_bg.png');
+}
+#login-container {
+	-webkit-box-shadow: 0 0 5px 1px #1C1C1C;
+	box-shadow: 0 0 5px 1px #1C1C1C;
+	background: rgba(240,240,230,.9);
+	background: url('images/login_bg_blur.jpg');
+	color: #FFF;
+}

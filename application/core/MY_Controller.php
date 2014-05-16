@@ -38,6 +38,11 @@ class My_Controller extends CI_Controller
 	 * @var Boolean
 	 */
 	private $is_administration = FALSE;
+	
+	/**
+	 * @var Navigation\Navigator 
+	 */
+	public $navigator;
 
 	/**
 	 * Constructor
@@ -47,12 +52,16 @@ class My_Controller extends CI_Controller
 		parent::__construct();
 		Head::init();
 		Logs::init();
+		User::init();
 
 		if ( $this->uri->segment( 1 ) === "administrace" )
 		{
 			$this->is_administration = TRUE;
+			$this->load->database();
 			//$this->administration_bootstrap();
 		}
+		
+		$this->navigator = new Navigation\Navigator();
 
 		
 	}

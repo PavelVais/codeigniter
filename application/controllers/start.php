@@ -31,6 +31,7 @@ class Start extends My_Controller
 	public function index()
 	{
 		$data = array();
+		Head::add()->js('https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js');
 		$this->load->view( 'view_start', $data );
 	}
 	

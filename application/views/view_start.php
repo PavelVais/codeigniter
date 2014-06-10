@@ -9,22 +9,28 @@
 		<div class="hero-unit">
 			<h1 class=""><i class='fa fa-bullhorn'></i> Codeigniter <?php echo CI_VERSION ?> je nainstalován a běží...</h1>
 			<div class="well">
+				<h2>pack verze: 1.4.1</h2>
+				<ul>
+					<li>Přidána jQuery funkce pro validaci formulářů</li>
+					<li><span class="label label-success">dev</span> K dispozici na <?php echo anchor( 'dev/form/validate' ) ?></li>
+				</ul>
 				<h2>pack verze: 1.4.0</h2>
 				<ul>
 					<li>HTMLElement změněn na HTML\Element a třída HTMLConstruct byla odstraněna.</li>
 					<li>Byl přidán ModelSorter, který umožňuje lehce měnit v databízi pořadí určitých prvků (vhodné pro změny pořadí vypisovaných položek atp.)</li>
 					<li>Třída message byla smazána a nahrazena třídou FlashMessage (obsahuje statické funkce ::set() a ::get()</li>
 					<li>Třída UserAutoLoginModel byla upravena a tím opravena.</li>
-					<li>Projekt ci_administrace se pomalu přesouvá do submodulu administrace v tomto projektu. <?php echo anchor('administrace','odkaz na administraci') ?></li>
+					<li>Projekt ci_administrace se pomalu přesouvá do submodulu administrace v tomto projektu. <?php echo anchor( 'administrace', 'odkaz na administraci' ) ?></li>
+					<li>Přidána funkce \HTML\JS::insert($alwaysCompile = false, $data = array(), $name = null,$compile_adv_mode = false), která vkládá do stránky odkaz na zkompilovaný JS kód</li>
 				</ul>
 				<h2>pack verze: 1.3.0</h2>
 				<ul>
 					<li>změny u HTMLElement:</li>
-						<ul>
-							<li>Pokud je apostrof (") v hodnotě např. u classu, zvolí se jiné ohraničení, takže se html element vždy správně vypíše.</li>
-							<li>do prikazu addAttribute je mozne vlozit array a objekt. Ten je nasledne preveden do JSON formatu.</li>
-							<li>byl přidán příkaz appendToAttribute($name,$value), který nepřemaže, ale vloži již do existujícího atributu další část</li>
-						</ul>
+					<ul>
+						<li>Pokud je apostrof (") v hodnotě např. u classu, zvolí se jiné ohraničení, takže se html element vždy správně vypíše.</li>
+						<li>do prikazu addAttribute je mozne vlozit array a objekt. Ten je nasledne preveden do JSON formatu.</li>
+						<li>byl přidán příkaz appendToAttribute($name,$value), který nepřemaže, ale vloži již do existujícího atributu další část</li>
+					</ul>
 					<li>Kompletní předělání Form Generatoru:</li>
 					<ul>
 						<li>Nyní je oddělen generátor od formuláře.</li>
@@ -57,11 +63,11 @@
 						<li>Soubor dmlvalditator byl přejmenován na "Validator"</li>
 						<li>Soubor dmlvalditatorinterface byl přejmenován na "ValidatorInterface"</li>
 						<li>Soubor dmlcache byl smazán</li>
-							
+
 					</ul>
 					<li>Přidána knihovna na user autologing. + sql create table dotaz</li>
 					<li>Přidán Benchmark/Timer</li>
-						
+
 				</ul>
 				<h2>pack verze: 1.1.1</h2>
 				<ul>
@@ -79,7 +85,7 @@
 					<li>jQuery aktualizováno na 1.10.2</li>
 					<li>Tato stránka přesunuta do controlleru <strong>start</strong>.</li>
 					<li>Config Header.php byl přejmenován na Head.php, aby kopíroval konvenci z head_helper.php</li>
-					<li>Stránka <?php echo anchor('homepage') ?>, je ihned připravena pro psaní</li>
+					<li>Stránka <?php echo anchor( 'homepage' ) ?>, je ihned připravena pro psaní</li>
 					<li>Pár nepotřebných souborů odstraněno</li>
 					<li>DML update:</li>
 					<ul>
@@ -87,12 +93,53 @@
 						<li>byl přidán příkaz dbJoinMN(), který vrací třídu dmlJoinMN</li>
 						<li>Kod byl zpřehledněn, odstraněny zbytečné hooky</li>
 						<li>DML nyní podporuje vnořené několikanásobné joiny</li>
-						
+
 					</ul>
 				</ul>
 
 			</div>
 			<div class="well">
+				<span class="label label-success">nově od 1.4.1</span>
+				<h2>jQuery validation plugin:</h2>
+				<p>Plugin obstarává všechen typ formulářových pravidel, které se normálně používají.</p>
+				<h3>Použití: (všude jsou dané defaultní hodnoty)</h3>
+				<pre class="prettyprint">
+$('#formular').validate({
+	ajax: false,					// Formular se odesle na pozadí
+	showTooltip: true,				// Zobrazi error v bootstrap tooltipu
+	tooltipPosition: 'right',			// Pozice bootstrap tooltipu
+	ajaxText: "Odesílám...",			// Text submitu při odesílání formuláře	
+	validateMsg: "Validuji formulář...",		// Text submitu při validaci
+	defaultSubmitOnSuccess: "Uloženo",		// Text submitu po validaci
+	customValidation: undefined,			// Pridani dalsich validacnich funkci (nazevValidace: function(value, ref, arg) {...})
+	onShowError: undefined,				// Prepsani show error funkce (attributy: element, message)
+	onBeforeCheck: undefined,			// Event volany PRED validaci
+	onSuccess: undefined,				// Event volany po uspesnem odeslani - pri return false se form. neodesle
+	onFail: undefined				//	Event volany pri nezdaru validace
+});					
+				</pre>
+			</div>
+			<div class="well">
+				<span class="label label-success">nově od 1.4.0</span>
+				<h2>JSShrink plugin:</h2>
+				<p>Pakliže vkládáte do view HTML souboru mnoho javascriptu, nelíbí se to různým SEO analyzátorům. 
+					A práve tento JSShrinker umožní psát javascript kód automaticky vygenerované view šabloně (plně podporuje PHP), kterou 
+					následně překonvertuje do javascriptu a zkompiluje. Do výsledné view složky vypíše akorát odkaz na soubor.
+				</p>
+				<h3>Použití:</h3>
+				<p>Do spodu stránky (pod poslední div) vložte:</p>
+				<pre class="prettyprint">
+\HTML\JS::insert();						
+				</pre>
+				<p>Toto stačí, aby se automaticky dalším načtením stránky vygeneroval soubor určený pro javascript ve složce "view/js/...".
+					Nebojte, značky -script- se samy vymažou.
+					<br>
+					<br>
+					Další atributy se dočtete z anotací.
+				</p>
+			</div>
+			<div class="well">
+
 				<h2>il8n plugin:</h2>
 				<p><strong>argument test: </strong>
 					<?php echo $this->lang->line( 'debug.arguments', 'Pavel', 25 ) ?>
@@ -131,7 +178,7 @@
 					<br>
 					ke které se přistupuje přes statickou proměnou ve třídě Autoloader;
 				</p>
-				<pre>
+				<pre class="prettyprint">
 Autoloader::$finder->find($file);
 				</pre>
 				<h3>Nová třída autoload_cache:</h3>
@@ -141,7 +188,7 @@ Autoloader::$finder->find($file);
 					<li>unBan($filename)</li>
 					<li>commit($overwrite = false)</li>
 				</ul>
-				
+
 			</div>
 			<div class="well">
 				<h2>\HTML\Element plugin:</h2>
@@ -153,7 +200,7 @@ Autoloader::$finder->find($file);
 					Počáteční odsazení můžete nastavit přes setFirstIndent($int);	
 				</p>
 				<h3>Příklad:</h3>
-				<pre>
+				<pre class="prettyprint">
 $a = \HTML\Element::open('a')->addAttribute('href',base_url('hlavnistrana'));
 $img = \HTML\Element::open( 'img' )->isPair( false )
 				  ->addAttribute( 'class', 'big' )
@@ -161,14 +208,14 @@ $img = \HTML\Element::open( 'img' )->isPair( false )
 $a->append($img)->generate();
 				</pre>
 				Vygeneruje:
-				<pre>
+				<pre class="prettyprint">
 &lt;a href='http://xxxx/hlavnistrana'&gt;
 	&lt;img src='xxx.jpg' class='big'&gt;
 &lt;/a&gt;
 				</pre>
-				
+
 				<h3>Příklad 2, využití příkazu next() a appendString():</h3>
-				<pre>
+				<pre class="prettyprint">
 $div = \HTML\Element::open('div')
 	->addAttribute('id','main');
 
@@ -180,7 +227,7 @@ $div2->appendString('&lt;h1&gt;Titulek&lt;/h1&gt;')	// appendString vlozi pouze 
 		->appendString('Text v paragrafu'));
 				</pre>
 				Vygeneruje:
-				<pre>
+				<pre class="prettyprint">
 &lt;div id='main'&gt;
 &lt;/div&gt;
 &lt;div&gt;
@@ -188,7 +235,7 @@ $div2->appendString('&lt;h1&gt;Titulek&lt;/h1&gt;')	// appendString vlozi pouze 
 	&lt;p&gt;Text v paragrafu&lt;/p&gt;
 &lt;/div&gt;
 				</pre>
-				
+
 			</div>
 			<div class="well">
 				<h2>UhOh a FB plugin:</h2>
@@ -199,7 +246,7 @@ $div2->appendString('&lt;h1&gt;Titulek&lt;/h1&gt;')	// appendString vlozi pouze 
 					FB plugin posílá debug informace do PHP firebugu.<br>
 					volá se statickou funkcí FB::info($mixed,$label); nebo FB::warning($mixed,$label);
 				</p>
-					
+
 			</div>
 			<div class="well">
 				<h2>Annotation plugin:</h2>
@@ -228,7 +275,7 @@ $div2->appendString('&lt;h1&gt;Titulek&lt;/h1&gt;')	// appendString vlozi pouze 
 				<p>Uživatel má retina display: <strong><?php echo Retina::isRetina() ? "ANO" : "NE" ?></strong> (Retina::isRetina())</p>
 				<p>Uživatel má HD display: <strong><?php echo Retina::isHighDPI() ? "ANO" : "NE" ?></strong> (Retina::isHighResolution())</p>
 				<p>Uživatel má low-res display: <strong><?php echo Retina::isLowDPI() ? "ANO" : "NE" ?></strong> (Retina::isLowResResolution())</p>
-					
+
 			</div>
 			<div class="row">
 				<div class="col-md-5">

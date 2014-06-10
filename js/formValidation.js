@@ -222,7 +222,7 @@
 				var p = element.closest('.form-group');
 				p.addClass('has-error has-feedback');
 				element.after('<span class="fa fa-warning form-control-feedback" data-toggle="tooltip" data-placement="' + settings.tooltipPosition + '" title="' + message + '"></span>');
-				if ($.fn.tooltip)
+				if ($.fn.tooltip && settings.showTooltip)
 				{
 					p.find('.form-control-feedback').tooltip('show');
 				}
@@ -330,6 +330,11 @@
 				});
 			} else {
 				el.off('validationSubmit').data('canSubmit', true);
+				if (settings.onSuccess !== undefined)
+				{
+					if (settings.onSuccess() === false)
+						return false;
+				}
 				el.submit();
 			}
 		}

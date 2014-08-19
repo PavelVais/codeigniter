@@ -7,14 +7,9 @@ if ( !defined( 'BASEPATH' ) )
  * @property CI_Loader $load
  * @property CI_Input $input
  * @property CI_URI $uri
+ * @property My_Output $output
  * @property CI_DB_active_record $db
- * @property Header $header
- * @property Menu $menu
- * @property Tank_auth $tank_auth //sprava prihlasenych
- * @property Template $template
- * @property Message $message
  * @property MY_Lang $lang
- * @property GoogleAnalytics $googleanalytics
  */
 class Start extends My_Controller
 {
@@ -23,6 +18,7 @@ class Start extends My_Controller
 	{
 		parent::__construct();
 		$this->load->helper( 'text' );
+		
 	}
 
 	/**
@@ -31,7 +27,8 @@ class Start extends My_Controller
 	public function index()
 	{
 		$data = array();
-		Head::add()->js('https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js');
+		Autoloader::$finder->cache->clearBans();
+		\Head\Head2::addJS('https://google-code-prettify.googlecode.com/svn/loader/run_prettify.js');
 		$this->load->view( 'view_start', $data );
 	}
 	

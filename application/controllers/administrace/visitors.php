@@ -40,7 +40,7 @@ class Visitors extends My_Controller
 	{
 		$data = array();
 		//$GA = new gapiWrapper('67920161'); //(rezivo)
-		$GA = new gapiWrapper( '69336713' ); //(jandik)
+		$GA = new gapiWrapper( '69336713','pavelvaiga','kockapes' ); //(jandik)
 		$GA->dimension( 'date' )->metric( array('users', 'newUsers', 'avgSessionDuration') );
 		$this->data['stat_result'] = $GA->get();
 		$GA->dimension( 'browser' )->metric( array('users') )->sort( '-users' )->filter('users > 1');

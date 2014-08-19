@@ -1,7 +1,8 @@
 <?php
 namespace HTML;
 /**
- * @version 2.0
+ * @version 2.1
+ *    2.1: Pridana funkce addData() a addClass() - zkratky pro addAttributes
  *		2.0: Pridan namespace HTML, HTMLConstructor a HTMLElement byly sjednoceny do HTML\Element
  *			- Vsechyn funkce jsou lepe zdokumentovany
  * 	1.1:
@@ -74,6 +75,29 @@ class Element
 		}
 
 		$this->elementAttr[$name] = $value == null ? false : $value;
+		return $this;
+	}
+	
+	/**
+	 * Shortcut pro addAttribute(data-...)
+	 * @param type $name
+	 * @param type $value
+	 * @return \HTML\Element
+	 */
+	public function addData($name,$value)
+	{
+		$this->addAttribute('data-'.$name, $value);
+		return $this;
+	}
+	
+	/**
+	 * Shortcut pro addAttribute(class,...)
+	 * @param string $value
+	 * @return \HTML\Element
+	 */
+	public function addClass($value)
+	{
+		$this->addAttribute('class', $value);
 		return $this;
 	}
 

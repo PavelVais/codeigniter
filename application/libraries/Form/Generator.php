@@ -21,6 +21,7 @@ class Generator
 
 		$this->ci = & get_instance();
 		$this->formData = $form->getElements();
+		$this->setTemplate(new BootstrapTemplate());
 	}
 
 	/**

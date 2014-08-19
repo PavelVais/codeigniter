@@ -421,7 +421,7 @@ class Form
 			$message = $this->ci->lang->line( $message );
 
 		$co = array("%label%", "%name%", "%argument%");
-		$zaco = array($element['metadata']['label'], $element['data']['name'], $argument);
+		$zaco = array($element['metadata']['label'] instanceof \HTML\Element ? '' : $element['metadata']['label'], $element['data']['name'], $argument);
 
 		$message = str_replace( $co, $zaco, $message );
 
@@ -523,9 +523,21 @@ class Form
 	 * Prida do hlavicky formulare atribut $name s hodnotou $value.
 	 * @param String $name - nazev atributu
 	 * @param String $value - hodnota atributu
+	 * @deprecated since version 1.2
 	 * @return \Form
 	 */
 	public function set_form_attribute($name, $value)
+	{
+		$this->form_attributes[$name] = $value;
+		return $this;
+	}
+	/**
+	 * Prida do hlavicky formulare atribut $name s hodnotou $value.
+	 * @param String $name - nazev atributu
+	 * @param String $value - hodnota atributu
+	 * @return \Form
+	 */
+	public function setFormAttribute($name, $value)
 	{
 		$this->form_attributes[$name] = $value;
 		return $this;

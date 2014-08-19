@@ -65,6 +65,11 @@
 
 				<!-- /.nav-second-level -->
 			</li>
+			<li>
+				<a href="<?php echo site_url( 'administrace/errors/' ) ?>"><i class="fa fa-bolt fa-fw"></i> Chyby na serveru</a>
+
+				<!-- /.nav-second-level -->
+			</li>
 
 		</ul>
 		<!-- /#side-menu -->

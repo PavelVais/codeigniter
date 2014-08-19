@@ -288,6 +288,12 @@ final class User {
 
 		return TRUE;
 	}
+	
+	public static function can($ruleSet,$method)
+	{
+		$ci = & get_instance();
+		return $ci->roles->allowed($ruleSet, $method);
+	}
 
 	/**
 	 * Logout user from the site
@@ -427,7 +433,6 @@ final class User {
 
 			$data = unserialize( $cookie );
 			\FB::info($data,'AUTOLOGIN');
-			\FB::info( md5( $data['key'] ),'md5 key');
 			if ( isset( $data['key'] ) AND isset( $data['user_id'] ) )
 			{
 
@@ -691,5 +696,3 @@ final class User {
 	}
 
 }
-
-?>

@@ -1,4 +1,4 @@
-<?php Head::generate( "Seznam článků", FALSE ); ?>
+<?php Head\Head2::generate( "Seznam článků", FALSE ); ?>
 <script>
 	$(document).ready(function() {
 
@@ -79,7 +79,7 @@
 
 	});
 </script>
-<?php Head::close(); ?>
+<?php Head\Head2::close(); ?>
 <body>
 	<div id="wrapper">
 
@@ -189,6 +189,7 @@
 
 	</div>
 	<?php $this->load->view( "administrace/view_footer" ); ?>
+	<?php echo Head\Head2::generateDeferred(); ?>
 
 </body>
 </html>

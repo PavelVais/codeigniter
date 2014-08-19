@@ -50,9 +50,11 @@ class My_Controller extends CI_Controller
 	function __construct()
 	{
 		parent::__construct();
-		Head::init();
+		//include APPPATH.'libraries/components/HTML/Element';
+		\Head\Head2::init();
 		Logs::init();
 		User::init();
+		Retina::init();
 
 		if ( $this->uri->segment( 1 ) === "administrace" )
 		{
@@ -64,6 +66,18 @@ class My_Controller extends CI_Controller
 		$this->navigator = new Navigation\Navigator();
 
 		
+	}
+	
+	/**
+	 * Vlozi do view souboru promennou
+	 * @param string $name - nazev promenne
+	 * @param mixed $value - hodnota
+	 * @return \My_Controller
+	 */
+	function layout($name, $value)
+	{
+		$this->load->vars( array($name => $value) );
+		return $this;
 	}
 
 	function administration_bootstrap()

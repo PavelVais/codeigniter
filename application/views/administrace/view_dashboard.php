@@ -1,12 +1,4 @@
-<?php Head::generate( "Administrace", FALSE ); ?>
-<script>
-	$(document).ready(function() {
-		
-
-
-	});
-</script>
-<?php Head::close(); ?>
+<?php Head\Head2::generate( "Administrace"); ?>
 <body>
 	<div id="wrapper">
 
@@ -468,6 +460,6 @@
 
     </div>
 	<?php $this->load->view("administrace/view_footer"); ?>
-
+	<?php echo Head\Head2::generateDeferred(); ?>
 </body>
 </html>

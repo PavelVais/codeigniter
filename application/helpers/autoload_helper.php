@@ -14,13 +14,13 @@ spl_autoload_extensions( '.php, .class.php' );
 
 /* * * class Loader ** */
 
-class Autoloader
-{
+class Autoloader {
 
+	/**
+	 * Pole složek, do kterých se má autoloader dívat
+	 * @var array 
+	 */
 	static $folders;
-
-	/** @var autoloader_mapper */
-	static $autoloaderMapper;
 
 	/** @var autoloader_finder */
 	static $finder;
@@ -30,32 +30,28 @@ class Autoloader
 	 * Nacte veskere cesty, do kterych se system diva a prispusobi
 	 * spl loader.
 	 */
-	static function init()
-	{
+	static function init() {
 		//debug
 		require_once APPPATH . '/libraries/components/FirePHPCore/FirePHP.php';
 		require_once APPPATH . '/libraries/components/FirePHPCore/fb.php';
 		require_once APPPATH . '/libraries/Cache.php';
-
 		self::$folders = array(
-			 APPPATH . 'libraries/',
-			 APPPATH . 'models/'
+		    APPPATH . 'libraries/',
+		    APPPATH . 'models/'
 		);
 		spl_autoload_register( 'Autoloader::load' );
 
-		if ( !class_exists( 'CI_Model' ) )
-		{
+		if ( !class_exists( 'CI_Model' ) ) {
 			load_class( 'Model', 'core' );
 		}
 		$ci = & get_instance();
-
 		$ci->load->library( 'cache' );
+
 		$mapper = new autoloader_mapper( self::$folders );
 		self::$finder = new autoloader_finder( $mapper );
 	}
 
-	static function setNamespace($name)
-	{
+	static function setNamespace($name) {
 		self::$finder->setNamespace( $name );
 	}
 
@@ -65,20 +61,18 @@ class Autoloader
 	 * @param String $class
 	 * @return void
 	 */
-	static function load($class)
-	{
+	static function load($class) {
 		if ( strpos( $class, 'CI_' ) !== false )
 			return;
 		if ( strpos( $class, 'MY_' ) !== false )
 			return;
-
+		//\FB::info($class,'HLEDAM');
 		self::$finder->find( $class );
 	}
 
 }
 
-class autoloader_mapper
-{
+class autoloader_mapper {
 
 	private $paths;
 
@@ -86,8 +80,7 @@ class autoloader_mapper
 
 	private $map;
 
-	public function __construct($paths)
-	{
+	public function __construct($paths) {
 		$this->paths = is_array( $paths ) ? $paths : array($paths);
 		$this->map = null;
 	}
@@ -96,12 +89,10 @@ class autoloader_mapper
 	 * Nacist mapu souboru a slozek, ve kterych se ma hledat
 	 * @return array
 	 */
-	public function loadMap()
-	{
+	public function loadMap() {
 		$ci = & get_instance();
 		$ci->load->library( 'cache' );
-		if ( ($cache = $ci->cache->get( self::MAP_CACHE_FILE )) == FALSE )
-		{
+		if ( ($cache = $ci->cache->get( self::MAP_CACHE_FILE )) == FALSE ) {
 			$cache = $this->createMap();
 		}
 		$this->map = $cache;
@@ -111,8 +102,7 @@ class autoloader_mapper
 	/**
 	 * Vytvori mapu souboru a slozek, ve kterych se potom hledaji soubory
 	 */
-	public function createMap()
-	{
+	public function createMap() {
 		$map = array();
 		foreach ( $this->paths as &$path )
 		{
@@ -135,8 +125,7 @@ class autoloader_mapper
 	 * Vrati mapu souboru a slozek
 	 * @return type
 	 */
-	public function getMap()
-	{
+	public function getMap() {
 		return $this->map == null ? $this->loadMap() : $this->map;
 	}
 
@@ -146,15 +135,14 @@ class autoloader_mapper
 	 * @param string $path
 	 * @return array
 	 */
-	private function getDirectories($path)
-	{
+	private function getDirectories($path) {
 		$directories = new RecursiveIteratorIterator(
-				  new ParentIterator( new RecursiveDirectoryIterator( $path ) ), RecursiveIteratorIterator::SELF_FIRST );
+			   new ParentIterator( new RecursiveDirectoryIterator( $path ) ), RecursiveIteratorIterator::SELF_FIRST );
 
 		// Nejdrive zmapujeme root slozku
 		$dirs[] = array(
-			 'folder' => $path,
-			 'files' => $this->getAllFilesFromDir( $path )
+		    'folder' => $path,
+		    'files' => $this->getAllFilesFromDir( $path )
 		);
 
 		// Nyni zmapujeme vnitrek child slozek
@@ -162,8 +150,8 @@ class autoloader_mapper
 		{
 			/* @var $directory SplFileInfo */
 			$dirs[] = array(
-				 'folder' => $directory->getPathname(),
-				 'files' => $this->getAllFilesFromDir( $directory->getPathname() )
+			    'folder' => $directory->getPathname(),
+			    'files' => $this->getAllFilesFromDir( $directory->getPathname() )
 			);
 
 			//FB::info( $directory->getPathname() );
@@ -177,8 +165,7 @@ class autoloader_mapper
 	 * @param string $dir
 	 * @return array
 	 */
-	private function getAllFilesFromDir($dir)
-	{
+	private function getAllFilesFromDir($dir) {
 		$result = array();
 		foreach ( new DirectoryIterator( $dir ) as $fileInfo )
 		{
@@ -193,8 +180,7 @@ class autoloader_mapper
 
 }
 
-class autoloader_finder
-{
+class autoloader_finder {
 
 	/**
 	 * Sance, ze se po includovani zavola 
@@ -214,8 +200,7 @@ class autoloader_finder
 	/** @var autoloader_file_cache */
 	public $cache;
 
-	public function __construct(autoloader_mapper $mapper)
-	{
+	public function __construct(autoloader_mapper $mapper) {
 		$this->mapper = $mapper;
 		$this->cache = new autoloader_file_cache();
 	}
@@ -227,20 +212,18 @@ class autoloader_finder
 	 * @param string $className
 	 * @return boolean
 	 */
-	public function find($className)
-	{
+	public function find($className) {
 		$className = $this->prepareClassName( $className );
-		if ( ($final_path = $this->cache->getPath( $className->fullname )) !== FALSE )
-		{
+		if ( ($final_path = $this->cache->getPath( $className->fullname )) !== FALSE ) {
+			//$this->rf->addFile($className->fullna, $className->name);
+			//\FB::info( $className->fullname, 'fullname includuji' );
 			include_once $final_path;
 			return TRUE;
 		}
 
-		if ( $this->cache->isBanned( $className->fullname ) )
-		{
+		if ( $this->cache->isBanned( $className->fullname ) ) {
 			return FALSE;
 		}
-
 		return $this->deepFind( $className );
 	}
 
@@ -248,8 +231,7 @@ class autoloader_finder
 	 * Nastavi jmenny prostor pro cestu ke cachi
 	 * @param string $name
 	 */
-	public function setNamespace($name)
-	{
+	public function setNamespace($name) {
 		$this->cache->setNamespace( $name );
 	}
 
@@ -259,34 +241,31 @@ class autoloader_finder
 	 * @param string $filename
 	 * @return boolean
 	 */
-	private function deepFind($filename)
-	{
+	private function deepFind($filename) {
 		static $renew;
 		$map = $this->mapper->getMap();
 		foreach ( $map as $dir )
 		{
-			
-			if ( ($path = $this->isExists( $dir, $filename->name ) ) )
-			{
-				if ( is_bool( $this->setPriority( $path, $filename ) ) )
-				{
+			//\FB::info( $filename );
+			//\FB::info( $dir );
+			if ( ($path = $this->isExists( $dir, $filename->name ) ) ) {
+				if ( is_bool( $this->setPriority( $path, $filename ) ) ) {
 					// Ulozime cestu do cache (jedna se o nonnamespace soubor)
+					//\FB::info( $filename->fullname, 'Includuji tento objekt' );
 					$this->cache->put( $filename->fullname, $path );
-					include_once $path;
+					include $path;
 					return;
 				}
 			}
 		}
-		if ( !empty( $filename->paths ) )
-		{
+		if ( !empty( $filename->paths ) ) {
 			$this->includeByPriority( $filename );
 			return true;
 		}
 
-		if ( $renew == null )
-		{
+		if ( $renew == null ) {
 			$renew = true;
-			FB::info( "soubor $filename->fullname se nenašel, jdu to znova oscanovat.. co kdyby nahodou.." );
+			//FB::info( "soubor $filename->fullname se nenašel, jdu to znova oscanovat.. co kdyby nahodou.." );
 			$this->mapper->createMap();
 
 			return $this->deepFind( $filename );
@@ -294,17 +273,15 @@ class autoloader_finder
 
 		//= Soubor se nanasel ani na podruhy, asi se nacita jinak
 		//= takze ho dam do banlistu
-		FB::info( "soubor $filename->fullname nebyl ani na podruhe nalezen, zabanuji ho." );
+		//FB::info( "soubor $filename->fullname nebyl ani na podruhe nalezen, zabanuji ho." );
 		$this->cache->ban( $filename->name );
 		$this->autoCommiter( self::CHANCE_TO_COMMIT_BAN );
 		return false;
 	}
 
-	private function includeByPriority($fileClass)
-	{
+	private function includeByPriority($fileClass) {
 		//FB::info( "Includuji soubor " . $fileClass->name );
-		if ( count( $fileClass->paths ) > 1 )
-		{
+		if ( count( $fileClass->paths ) > 1 ) {
 			usort( $fileClass->paths, function($a, $b)
 			{
 				return $a['priority'] < $b['priority'];
@@ -316,32 +293,30 @@ class autoloader_finder
 		include $fileClass->paths[0]['path'];
 	}
 
-	private function setPriority($path, &$fileClass)
-	{
+	private function setPriority($path, &$fileClass) {
 		$namespaces = $fileClass->namespaces;
-		if ( empty( $namespaces ) )
-		{
+		if ( empty( $namespaces ) ) {
 			$fileClass->paths[] = array(
-				 'path' => $path,
-				 'priority' => 0);
+			    'path' => $path,
+			    'priority' => 0);
 			return true;
 		}
 		$path_parts = pathinfo( $path );
+		$path_parts['dirname'] = str_replace( "\\", "/", $path_parts['dirname'] );
 		$dirs = explode( '/', $path_parts['dirname'] );
 		$priority = 0;
 		foreach ( $dirs as $dir )
 		{
 			foreach ( $namespaces as $nm )
 			{
-				if ( strtolower( $dir ) == strtolower( $nm ) )
-				{
+				if ( strtolower( $dir ) == strtolower( $nm ) ) {
 					$priority += 1;
 				}
 			}
 		}
 		$fileClass->paths[] = array(
-			 'path' => $path,
-			 'priority' => $priority
+		    'path' => $path,
+		    'priority' => $priority
 		);
 		/* FB::group( "priorita" );
 		  FB::info( $priority, 'priorita' );
@@ -352,13 +327,11 @@ class autoloader_finder
 		return $fileClass;
 	}
 
-	private function prepareClassName($className)
-	{
+	private function prepareClassName($className) {
 		// let's find namespaces!
 		$result = explode( '\\', $className );
 
-		if ( count( $result ) == 1 )
-		{
+		if ( count( $result ) == 1 ) {
 			$r = new stdClass();
 			$r->name = $result[0];
 			$r->namespaceID = '';
@@ -367,8 +340,7 @@ class autoloader_finder
 			$r->paths = array();
 			return $r;
 		}
-		else
-		{
+		else {
 			$nm = array_splice( $result, 0, count( $result ) - 1 );
 			$r = new stdClass();
 			$r->name = $result[count( $result ) - 1];
@@ -386,13 +358,11 @@ class autoloader_finder
 	 * @param string $filename
 	 * @return boolean
 	 */
-	private function isExists($dirContent, $filename)
-	{
+	private function isExists($dirContent, $filename) {
 		foreach ( $dirContent['files'] as $file )
 		{
 			//FB::info( $file . ' == ' . $filename . ' -> ' . (strtolower( $file ) == strtolower( $filename ) . '.php' && file_exists( $dirContent['folder'] . '/' . $file ) ? 'YES' : 'NO'), 'isExists()' );
-			if ( strtolower( $file ) == strtolower( $filename ) . '.php' && file_exists( $dirContent['folder'] . '/' . $file ) )
-			{
+			if ( strtolower( $file ) == strtolower( $filename ) . '.php' && file_exists( $dirContent['folder'] . '/' . $file ) ) {
 				return $dirContent['folder'] . '/' . $file;
 			}
 		}
@@ -403,10 +373,8 @@ class autoloader_finder
 	/**
 	 * Je 20% sance, ze se ulozi vsechny zmeny v cachi.
 	 */
-	private function autoCommiter($chance)
-	{
-		if ( rand( 0, 100 ) <= $chance )
-		{
+	private function autoCommiter($chance) {
+		if ( rand( 0, 100 ) <= $chance ) {
 			//FB::info( 'autoCommiter cache saving...' );
 			$this->cache->commit();
 		}
@@ -420,8 +388,7 @@ class autoloader_finder
  * @author Pavel Vais
  * @version 1.0
  */
-class autoloader_file_cache
-{
+class autoloader_file_cache {
 
 	/**
 	 * Mapa cest jednotlivych trid k jejich souborum
@@ -461,8 +428,7 @@ class autoloader_file_cache
 	 */
 	const FILES_CACHE_NAME = 'atlc/atlc_names';
 
-	public function __construct()
-	{
+	public function __construct() {
 
 		$this->loadCache();
 		/*FB::group( "file cache" );
@@ -476,15 +442,12 @@ class autoloader_file_cache
 	 * Pokud se cache nenajde, nactou se prazdne promenne, popr. se nechaji ty, ktere
 	 * doposavad existuji
 	 */
-	public function loadCache()
-	{
+	public function loadCache() {
 		$ci = & get_instance();
-		if (( $result = $ci->cache->get( $this->getCacheName() )) == FALSE )
-		{
+		if ( ( $result = $ci->cache->get( $this->getCacheName() )) == FALSE ) {
 			/* fallback? */
 		}
-		else
-		{
+		else {
 			list($this->map, $this->banlist) = $result;
 		}
 		return $this;
@@ -494,8 +457,7 @@ class autoloader_file_cache
 	 * Smaze cache
 	 * @return \autoloader_file_cache
 	 */
-	public function renew()
-	{
+	public function renew() {
 		$ci = & get_instance();
 		$ci->cache->delete( $this->getCacheName() );
 		$this->map = array();
@@ -508,10 +470,8 @@ class autoloader_file_cache
 	 * @param type $className
 	 * @return boolean
 	 */
-	public function getPath($className)
-	{
-		if ( empty( $this->map ) )
-		{
+	public function getPath($className) {
+		if ( empty( $this->map ) ) {
 			return false;
 		}
 		$hash = self::hashFilename( $className );
@@ -520,22 +480,19 @@ class autoloader_file_cache
 
 		return isset( $this->map[$hash] ) ? $this->map[$hash] : false;
 	}
-	
+
 	/**
 	 * Odstrani z cache cestu k souboru
 	 * @param string $className
 	 * @return boolean
 	 */
-	public function removePath($className)
-	{
+	public function removePath($className) {
 		$hash = self::hashFilename( $className );
-		if ( isset( $this->map[$hash] ) )
-		{
-			unset($this->map[$hash] );
+		if ( isset( $this->map[$hash] ) ) {
+			unset( $this->map[$hash] );
 			return true;
 		}
 		return false;
-		
 	}
 
 	/**
@@ -543,8 +500,7 @@ class autoloader_file_cache
 	 * @param type $filename
 	 * @param type $path
 	 */
-	public function put($filename, $path)
-	{
+	public function put($filename, $path) {
 		$this->unsavedMap[self::hashFilename( $filename )] = $path;
 	}
 
@@ -553,8 +509,7 @@ class autoloader_file_cache
 	 * se pres tuto funkci hodi do banu, a tim pri dalsim loadingu se nenacte.
 	 * @param string $filename
 	 */
-	public function ban($filename)
-	{
+	public function ban($filename) {
 		$this->saveBans = true;
 		$this->banlist[] = $filename;
 	}
@@ -564,8 +519,7 @@ class autoloader_file_cache
 	 * Cela cache se automaticky ulozi
 	 * @param string $filename
 	 */
-	public function unBan($filename)
-	{
+	public function unBan($filename) {
 		$this->saveBans = true;
 		foreach ( $this->banlist as $key => $ban )
 		{
@@ -574,12 +528,11 @@ class autoloader_file_cache
 		}
 		$this->commit();
 	}
-	
-	public function clearBans()
-	{
+
+	public function clearBans() {
 		$this->saveBans = true;
 		$this->banlist = array();
-		$this->commit(true);
+		$this->commit( true , true);
 		return $this;
 	}
 
@@ -588,8 +541,7 @@ class autoloader_file_cache
 	 * @param type $filename
 	 * @return boolean
 	 */
-	public function isBanned($filename)
-	{
+	public function isBanned($filename) {
 		foreach ( $this->banlist as $ban )
 		{
 			if ( strtolower( $ban ) == strtolower( $filename ) )
@@ -601,18 +553,16 @@ class autoloader_file_cache
 	/**
 	 * Ulozi cache
 	 * @param boolean $overwrite - Premaze stavajici cache [true]
+	 * @param boolean $only_bans - Premazou se pouze bany [true]
 	 * @return array 
 	 */
-	public function commit($overwrite = false)
-	{
-		if ( empty( $this->unsavedMap ) && !$this->saveBans )
-		{
+	public function commit($overwrite = false, $only_bans = false) {
+		if ( empty( $this->unsavedMap ) && !$this->saveBans ) {
 			//FB::info( 'ATCL Cache commit() nebylo nic uloženo.' );
 			return $this->map;
 		}
 
-		if ( !empty( $this->map ) && !$overwrite )
-		{
+		if ( !empty( $this->map ) && (!$overwrite || ($overwrite && $only_bans)) ) {
 			$this->unsavedMap = array_merge( $this->map, $this->unsavedMap );
 		}
 
@@ -629,8 +579,7 @@ class autoloader_file_cache
 	 * @param string $filename
 	 * @return string
 	 */
-	static function hashFilename($filename)
-	{
+	static function hashFilename($filename) {
 		return md5( $filename );
 	}
 
@@ -640,15 +589,79 @@ class autoloader_file_cache
 	 * je rozlozit do vice souboru
 	 * @param type $name
 	 */
-	public function setNamespace($name)
-	{
+	public function setNamespace($name) {
 		$this->name = '_' . strtolower( $name );
 		$this->loadCache();
 	}
 
-	private function getCacheName()
-	{
+	private function getCacheName() {
 		return self::FILES_CACHE_NAME . $this->name;
+	}
+
+}
+
+/**
+ * Proces cache:
+ * 1) na zaver uz jsou vsechny tridy includovany => POST hook
+ * 2) ten vsechny soubory, ktere se prave includovali ulozi do cache
+ * 3) cache se ulozi pod specialnim ID
+ * 	=> toto ID reprezentuje url adresu 
+ * @dev
+ */
+class autoloader_reqfiler {
+
+	static private $content = '';
+	static private $data = array();
+	private $id;
+
+	public function __construct() {
+		$ci = & get_instance();
+		$ci->load->helper( 'file' );
+		$this->generateID( $ci->uri->segment( 1 ) . '_' . $ci->uri->segment( 2 ) );
+	}
+
+	private function newCache($paths) {
+		self::$content = '';
+		foreach ( $paths as $p )
+		{
+			//\FB::info( $p, 'Ukladam do cache' );
+			self::$content .= 'include(' . $p . ');' . PHP_EOL;
+		}
+	}
+
+	public function addFile($filePath, $className) {
+		self::$data[] = array(
+		    'path' => $filePath,
+		    'class' => $className
+		);
+		return $this;
+	}
+
+	public function add($filepath) {
+		$content = read_file( $this->getCachePath() );
+		$content.= 'include(' . $filepath . ');' . PHP_EOL;
+	}
+
+	public function loadCache() {
+		if ( file_exists( $this->getCachePath() ) ) {
+			include($this->getCachePath());
+			return true;
+		}
+		return false;
+	}
+
+	public function saveCache() {
+		\FB::info( 'ukladam cache' );
+		//return write_file( $this->getCachePath(), self::$content );
+	}
+
+	private function getCachePath() {
+		return APPPATH . 'cache/' . $this->id . '.php';
+	}
+
+	private function generateID($url) {
+		$this->id = str_replace( '/', '_', $urls );
+		return $this->id;
 	}
 
 }

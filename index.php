@@ -18,7 +18,12 @@
  * NOTE: If you change these, also change the error_reporting() code below
  *
  */
+	//define('ENVIRONMENT', 'production');
 	define('ENVIRONMENT', 'development');
+	
+	$locallist = array('127.0.0.1','::1');
+	define('IS_LOCALHOST',in_array( $_SERVER['REMOTE_ADDR'], $locallist));
+	
 /*
  *---------------------------------------------------------------
  * ERROR REPORTING
@@ -33,7 +38,7 @@ if (defined('ENVIRONMENT'))
 	switch (ENVIRONMENT)
 	{
 		case 'development':
-			error_reporting(E_ALL);
+			error_reporting(E_ALL ^ E_STRICT ^ E_WARNING);
 		break;
 	
 		case 'testing':

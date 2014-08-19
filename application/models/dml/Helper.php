@@ -135,7 +135,28 @@ class Helper
 		return $return;
 	}
 
-}
+	/**
+	 * String prevede pole. Paklize to jiz pole je, vrati se a nic se 
+	 * s argumentem neprovadi. Pokud je String, tak se rozdeli dle
+	 * argumentu $delimiter. Taktez se provede trim, aby se odstranily
+	 * vsechny mezery pred a za polozkou
+	 * @param string/array $array
+	 * @param string $delimiter, default ','
+	 * @return array
+	 */
+	static function to_array(&$array,$delimiter = ',')
+	{
+		if (is_array($array))
+			return $array;
+		
+		$a = explode($delimiter, $array);
+		
+		foreach($a as &$r)
+		{
+			$r = trim($r);
+		}
+		return $a;
+	}
 
 /* End of file dmlhelper.php */
 /* Location: ./application/models/dmlhelper.php */

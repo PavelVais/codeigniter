@@ -334,7 +334,7 @@ if ( ! function_exists('link_tag'))
 				}
 			}
 
-			$link .= "/>";
+			$link .= ">";
 		}
 		else
 		{
@@ -363,7 +363,7 @@ if ( ! function_exists('link_tag'))
 				$link .= 'title="'.$title.'" ';
 			}
 
-			$link .= '/>';
+			$link .= '>';
 		}
 
 

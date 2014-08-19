@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @deprecated since version 1.0
+ */
 class Head
 {
 
@@ -19,7 +21,6 @@ class Head
 		self::$ci = & get_instance();
 		self::$ci->load->helper( "html" );
 		self::$ci->load->config( 'head' );
-		self::$ci->load->driver( 'minify' );
 		self::$ci->lang->load( 'common' );
 
 		self::$settings = self::$ci->config->item( 'header' );

@@ -1,14 +1,62 @@
-<?php Head::generate( 'Úvodní stránka', FALSE ); ?>
-<script>
-	$(document).ready(function() {
-	});
-</script>
-<?php Head::close(); ?>
+<?php \Head\Head2::generate( 'Úvodní stránka' ); ?>
 <body>
 	<div id="main-wrapper" class="container">
 		<div class="hero-unit">
-			<h1 class=""><i class='fa fa-bullhorn'></i> Codeigniter <?php echo CI_VERSION ?> je nainstalován a běží...</h1>
+			<h1 class=""><i class='fa fa-bullhorn'></i> Codeigniter <?php echo CI_VERSION ?>, PHP <?php echo PHP_VERSION ?> je nainstalován a běží...</h1>
 			<div class="well">
+				<h2>pack verze: 1.6.0</h2>
+				<ul>
+					<li>Přidáno: Složka custom_controller do složky libraries, ve které se ukládají ostatní controllery. Momentálně je zde <strong>API_Controller</strong>, který je přizpůsoben na vnější komunikaci</li>
+					<li>Přidáno: Do Head configu přibyl k jednotlivým objektům atribut "localhost", který se určuje, že se objekt vypíše pouze, pokud se ke stránce přistupuje jako z lokálního zdroje.</li>
+					<li>Přidáno: Do packu byla zahrnuta offline verze jQuery (1.11)</li>
+					<li>Opraveno: MY_Language: Nyní neníčí kusy url adresy, když je nastaven cizí jazyk.</li>
+					<li>Přidáno: Routování nyí umožňuje rekurzivní adresování: Stačí před danou routu dát "!" (vykřičník). Vhodné pro delegování vícejazyčních rout.</li>
+					<li>Přepsáno: MY_Exception třída: Přidán config, ve kterém se dá nastavit, že se errory budou ukládat do databáze; zárověň se při produkčním módu ukazuje error v templatu: errors/error_php_production.php</li>
+					<li>Opraveno: V tříde Head2 byly opraveny (všechny) chybné bugy, zapřičiňující prázdné Common_Objekty.</li>
+					<li>Přidáno: konstanta IS_LOCALHOST. Pozor, využívat jen v necitlivých věcech. Dá se oblafnout.</li>
+					<li>Přidáno: Base\CommonModel, který obsahuje základní funkce pro práci s db (get,modify,delete...)</li>
+					<li>Přidáno: Controller Pages, který je určen pro statické stránky.</li>
+					<li>Přidáno: EmailForm knihovna, která lehce umožnuje vytvořit kontaktní formulář.</li>
+					<li>Přidáno: soubor robots.txt</li>
+					<li>Aktualizováno: Do .htaccess byla přidána podmínka na přesměrování při nedodržení www. (nutno vždy zapnout)</li>
+					<li>Aktualizováno: Bootstrap na verzi 3.2</li>
+					<li>Třída Head by se již neměla používat! (@deprecated)</li>
+					<li>Opraveno: Chyba v chybě při 404.</li>
+					<li>Opraveno: MY_exception třída a chyba v chybě</li>
+					<li>Přidáno: Production 404 template</li>
+					<li>Přidáno: JS knihovna pro css3 animace (scale-out, scale-in, vibrate, flash)</li>
+					<li>Přidáno: CSS knihovna s bootstrap updatama (.img-center,.no-overflow)</li>
+					<li>Upraveno: CSS knihovna mystyle.css, vymazány nepotřebné věci</li>
+				</ul>
+				<h2>pack verze: 1.5.0</h2>
+				<ul>
+					<li>Přepsán HTML/JS::insert($minify,$data,$name,$save_to_cache)</li>
+					<li>Pokud není jinak, nastavení JS::insert bere nastavení z config složky</li>
+					<li>Bere se důraz na ENVIROMENT - pokud je v modu "development", všechny debugy jsou  zapnutý, pokud
+					je v módu "production", tak FB,BASE::debug a momentálně í JS::insert se chová jinak.
+					</li>
+					<li>Ve třídě User přibyla static funkce "can", která supluje dotaz na role. (User::can("article","edit"))</li>
+					<li>Třída roles byla aktualizována a přibyla funkce reload_data() (vhodné po použití ihned po nalogování)</li>
+					<li>Zavedena jednotná verze Hooku, který se dělí na Holder, který drží při sobě hooky a pak Placer, neboli jednotlivý hook, který v sobě nese všechny důležité informace.
+						viz: dev/table
+					
+					</li>
+					<li>přidána funkce DML/Helper::to_array(), vše převede na array a provede trim na jednotlivé prvky.</li>
+					<li>Přidána třida URI/Link::URL(), která přináší větší čitelnost odkazů, víze níže.
+						<br>
+						<div class="label label-success">dev</div> Příklady na <?php echo anchor(URI\Link::URL("dev/uri")) ?>
+					</li>
+					<li>Kompletně přepsána Head třída:</li>
+					<ul>
+						<li>Nyní má namespace Head\</li>
+						<li>Místo funkce add() a vracení nové třídy využívá funkce addJS(),addCSS(),addView(),addString(),addMeta()</li>
+						<li>Nyní každý prvek je v head tabulce je tvořen třídou Head\Common_object($url = null, $type = Common_object::TYPE_JAVASCRIPT)</li>
+						<li>Při vložení nového parametru do tabulky lze tedy vyuzit konstruktor: Head::addJS(new Head\Common_object(..))</li>
+						<li>Při PRODUCTION ENVIRONMENT všechny CSS a JS zkombinuje do jednoho a minimalizuje.</li>
+						<li>Pro facebook meta tag existuje funkce Head::Facebook_metas()</li>
+						
+					</ul>
+				</ul>
 				<h2>pack verze: 1.4.1</h2>
 				<ul>
 					<li>Přidána jQuery funkce pro validaci formulářů</li>
@@ -43,7 +91,7 @@
 					<li>Formulářový prvek dropdown a hidden nyní podporují extra atributy</li>
 					<li>Pár věcí odstranění z administrace, stále je potřeba ji předělat / připravit</li>
 					<li>DMLHelper nyní obsahuje funkci getValuesFromArrays()</li>
-					<li>DML nyní obsahuej static proměnou DEBUG, která zapne detailní debugování do FireBugu</li>
+					<li>DML nyní obsahuje static proměnou DEBUG, která zapne detailní debugování do FireBugu</li>
 					<li>Opraven bug v DML funkci dbCountRows()</li>
 					<li>Přidan příkaz DML->dbDelete()</li>
 					<li>DML: Při změně názvu tabulky na stejný název se nyní nenačítá znova celá cache</li>
@@ -98,6 +146,58 @@
 				</ul>
 
 			</div>
+			<div class="well">
+				<span class="label label-success">nově od 1.5</span>
+				<h2>URI modul:</h2>
+				<p>URI modul, jinak řečeno Link třída je standartizace pro zapisování url adres. Zadaná URL adresa
+				může začínat i takzvanýma modifikátorama. Ty jsou momentálně tři.
+				<br>
+				Druhým argumentem jsou argumenty pro url, které se zapisují na konec uri. Zde je možné vložit string nebo array.
+				</p>
+				<h3>URI modifikátory:</h3>
+				<ul>
+					<li><strong>!</strong> - Určuje, že odkaz bude mířit do současnýho modulu </li>
+					<li><strong>?</strong> - Na konec url adresy se vloží segment s CSRF tokenem </li>
+					<li><strong>:</strong> - signál, že se jedná o externí url adresu a tak se zkontroluje "http://" prefix a nic víc se s tím dělat nebude.</li>
+					<li><strong>$</strong> - Danou url přidá za stávající. Dejte si pozor, aby adresa neodkazovala na stejnou, pak dojde k řetězení.</li>
+				</ul>
+				<h3>Přiklady použití: (uvažujme, že jsme na adrese <?php echo site_url('dev/form') ?>) </h3>
+				<pre class="prettyprint">
+echo URI\Link::URL("form");</pre>
+				výsledek: <?php echo URI\Link::URL("form") ?>
+				<br>
+				<br>
+				<pre class="prettyprint">
+echo URI\Link::URL("!form");</pre>
+				výsledek: <?php echo URI\Link::URL("dev/form") ?>
+				<br>
+				<br>
+				<pre class="prettyprint">
+echo URI\Link::URL("!?form");</pre>
+				výsledek: <?php echo URI\Link::URL("?dev/form") ?>
+				<br>
+				<br>
+				<pre class="prettyprint">
+echo URI\Link::URL(":example.com");</pre>
+				výsledek: <?php echo URI\Link::URL(":example.com") ?>
+				<br>
+				<br>
+				<pre class="prettyprint">
+echo URI\Link::URL("!articles",1);</pre>
+				výsledek: <?php echo URI\Link::URL("dev/articles",1) ?>
+				<br>	
+				<br>	
+				<pre class="prettyprint">
+echo URI\Link::URL("$articles");</pre>
+				výsledek: <?php echo URI\Link::URL('$articles') ?>
+				<br>	
+				<br>	
+				<pre class="prettyprint">
+echo URI\Link::URL("!articles",array(1,"edit","key" => "value"));</pre>
+				výsledek: <?php echo URI\Link::URL("dev/articles",array(1,"edit","key" => "value")) ?>
+			</div>
+			
+			
 			<div class="well">
 				<span class="label label-success">nově od 1.4.1</span>
 				<h2>jQuery validation plugin:</h2>
@@ -310,5 +410,6 @@ $div2->appendString('&lt;h1&gt;Titulek&lt;/h1&gt;')	// appendString vlozi pouze 
 		</div>
 
 	</div>
+	<?php \Head\Head2::generateDeferred(); ?>
 </body>
 </html>

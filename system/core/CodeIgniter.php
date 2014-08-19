@@ -238,6 +238,8 @@
 	{
 		require APPPATH.'core/'.$CFG->config['subclass_prefix'].'Controller.php';
 	}
+	
+	$EXT->_call_hook('pre_local_controller');
 
 	// Load the local application controller
 	// Note: The Router class automatically validates the controller path using the router->_validate_request().

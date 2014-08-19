@@ -802,7 +802,7 @@ abstract class Base extends \CI_Model
 
 	private function sendDebugMessage($message, $label)
 	{
-		if ( self::$DEBUG )
+		if ( self::$DEBUG && ENVIROMENT == "development" )
 			\FB::info( $message, '(DML) ' . $label );
 		return $this;
 	}

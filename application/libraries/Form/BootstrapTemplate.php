@@ -2,7 +2,7 @@
 
 namespace Form;
 
-class BootstrapTemplate extends Template
+class BootstrapTemplate implements TemplateInterface
 {
 
 	private $options;
@@ -23,8 +23,8 @@ class BootstrapTemplate extends Template
 	public function __construct()
 	{
 		$this->setOption( self::OPTION_LAYOUT, self::HORIZONTAL )
-				  ->setOption( self::OPTION_INPUT_CLASS, 'col-sm-10' )
-				  ->setOption( self::OPTION_LABEL_CLASS, 'col-sm-2' );
+				  ->setOption( self::OPTION_INPUT_CLASS, 'col-sm-9' )
+				  ->setOption( self::OPTION_LABEL_CLASS, 'col-sm-3' );
 
 
 		$this->tempOptions[0] = array();
@@ -47,7 +47,7 @@ class BootstrapTemplate extends Template
 		}
 		else
 		{
-			$e->appendToAttribute( 'class', 'col-sm-offset-2' );
+			$e->appendToAttribute( 'class', 'col-sm-offset-3' );
 		}
 
 		unset( $this->tempOptions[0] );
@@ -106,4 +106,40 @@ class BootstrapTemplate extends Template
 				  ->appendToAttribute( 'class', 'control-label' )
 				  ->appendString( $element['metadata']['label'] );
 	}
+
+	public function setOnce($name, $value, $forElement = null)
+	{
+		$this->tempOptions[($forElement == null ? 0 : $forElement)][$name] = $value;
+		return $this;
+	}
+
+	public function setOption($name, $value)
+	{
+		$this->options[$name] = $value;
+		return $this;
+	}
+
+	/**
+	 * Vrati nastaveni. 
+	 * @param string $name
+	 * @return \Form\BootstrapTemplate
+	 */
+	private function getOption($name)
+	{
+
+		if ( isset( $this->tempOptions[$this->currentElement['data']['name']][$name] ) )
+		{
+			return $this->tempOptions[$this->currentElement['data']['name']][$name];
+		}
+		if ( isset( $this->tempOptions[0][$name] ) )
+		{
+			return $this->tempOptions[0][$name];
+		}
+		elseif ( isset( $this->options[$name] ) )
+		{
+			return $this->options[$name];
+		}
+		return '';
+	}
+
 }

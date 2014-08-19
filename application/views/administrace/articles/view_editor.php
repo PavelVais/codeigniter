@@ -1,4 +1,4 @@
-<?php Head::generate( "Editor článků", FALSE ); ?>
+<?php Head\Head2::generate( "Editor článků", FALSE ); ?>
 <script>
 	$(document).ready(function() {
 		$('#frm_message').summernote({
@@ -78,7 +78,7 @@
 
 	});
 </script>
-<?php Head::close(); ?>
+<?php Head\Head2::close(); ?>
 <body>
 	<div id="wrapper">
 
@@ -148,6 +148,6 @@
 
 	</div>
 	<?php $this->load->view( "administrace/view_footer" ); ?>
-
+	<?php echo Head\Head2::generateDeferred(); ?>
 </body>
 </html>

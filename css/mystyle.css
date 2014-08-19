@@ -1,40 +1,74 @@
-
-body {background: url('images/bg.jpg');}
-h1 { line-height: 70px;}
-h1 { color: #000; text-shadow: 2px 4px 3px rgba(0,0,0,0.3); top: 0;}
-
-
-.btn-primary,.btn-danger{
-	background-color: #2685B1;
-	background-image: none;
-}
-.btn-danger { background-color: #E05550;}
-
-.btn-primary:hover {
-	background-color: #C2509B;
-}
-.hero-unit { padding-top: 30px;}
-.hero-unit h1 { margin-bottom: 15px;}
-ul.nav ul li.active a,ul.nav ul li:hover a{ margin-right: -30px;}
-li a:hover i,li.active a i {background-image: url("images/glyphicons-halflings.png");}
-
-.alert { position: relative;}
-.alert.alert-success p { width: 95%;}
-.no-overflow { overflow-x: hidden;}
-.approve-panel { margin-right: 15px; }
-
-.bottom-panel { margin-top: 25px;}
-img.retina {
-	width: 100%;
-	max-width: 400px;
-}
-.retina.ret-300{
-	max-width: 300px;
-}
 /**************************
-ORIGO STRANKY
+COMMON CSS
 ***************************/
 
+
+body {background: url('images/bg.jpg');}
+
+/**************************
+PAGE CSS
+***************************/
+
+
+
+/**************************
+ANIMATION EFFeCTS
+***************************/
+.t {
+	-webkit-transition: all 0.35s ease-in-out;
+	-moz-transition: all 0.35s ease-in-out;
+	-ms-transition: all 0.35s ease-in-out;
+	-o-transition: all 0.35s ease-in-out;
+	transition: all 0.35s ease-in-out;
+}
+.t-fast {
+	-webkit-transition: all 0.15s ease-in-out;
+	-moz-transition: all 0.15s ease-in-out;
+	-ms-transition: all 0.15s ease-in-out;
+	-o-transition: all 0.15s ease-in-out;
+	transition: all 0.15s ease-in-out;
+}
+.bigger:hover,.parent-t:hover .bigger {
+	-moz-transform: scale(1.2);
+	-webkit-transform: scale(1.2);
+	-o-transform: scale(1.2);
+	-ms-transform: scale(1.2);
+	transform: scale(1.2);
+}
+.slide-left {
+	-moz-transform: translateX(-100%);
+	-webkit-transform: translateX(-100%);
+	-o-transform: translateX(-100%);
+	-ms-transform: translateX(-100%);
+	transform: translateX(-100%);
+}
+.slide-right {
+	-moz-transform: translateX(100%);
+	-webkit-transform: translateX(100%);
+	-o-transform: translateX(100%);
+	-ms-transform: translateX(100%);
+	transform: translateX(100%);
+}
+.scale-0 {
+	-moz-transform: scale(0);
+	-webkit-transform: scale(0);
+	-o-transform: scale(0);
+	-ms-transform: scale(0);
+	transform: scale(0);
+}
+.scale-1 {
+	-moz-transform: scale(1);
+	-webkit-transform: scale(1);
+	-o-transform: scale(1);
+	-ms-transform: scale(1);
+	transform: scale(1);
+}
+.opacity-0 {
+	opacity: 0;
+}
+.opacity-1 {
+	opacity: 1;
+}
 
 /* Large desktop */
 @media (min-width: 1200px) { 

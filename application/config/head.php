@@ -26,6 +26,19 @@ $config['header']['lang_file'] = 'common';
 
 /*
   |--------------------------------------------------------------------------
+  | Pokud je 'environment_option' TRUE, nastavuje se chovani
+  | dle ENVIRONMENT globalni promenne (v index.php).
+  | Pokud je promenna nastavena na development rezim, soubory se
+  | neslucuji a neminifikuji.
+  | Pokud je nastavena produkcni rezim, vsechny CSS a JS soubory se automaticky
+  | sloučí a minifikují.
+  | Pokud se něnkterý soubor změní, automaticky se cache překompiluje.
+  |--------------------------------------------------------------------------
+ */
+$config['header']['environment_option'] = true;
+
+/*
+  |--------------------------------------------------------------------------
   | Zakladni nastaveni hlavicky u kazde stranky (ktera dane informace generuje
   | pomoci $this->header->generate('TITULEK STRANKY');
   |--------------------------------------------------------------------------
@@ -36,7 +49,7 @@ $config['header']['favicon'] = 'favicon.ico';
 $config['header']['description'] = '';
 $config['header']['encode'] = 'utf-8'; //= Default
 $config['header']['language'] = 'en';  //= Default
-$config['header']['doctype'] = 'html5';  //= viz codeigniter guide ('xhtml1-strict' napr.)
+$config['header']['doctype'] = '<!DOCTYPE html>';  //= viz codeigniter guide ('xhtml1-strict' napr.)
 
 /**
  * Spojka, ktera se prida v pripade, ze je uveden title-psotfix
@@ -85,36 +98,34 @@ $config['header']['cache-js-prefix'] = 'cache/cacheminifed_';
   | www.aaa.cz/foo/bar => ZOBRAZI se
   | www.aaa.cz/foo/bar/aaa => NEZOBRAZI se
   |
-  | 'cover' muze obsahovat argument 'all' nebo se nemusi vubec uvadet,
-  | pokud chceme dany objekt aplikovat na jakekoli strance
+  | 'cover' se nemusi vubec uvadet, pote se objekt vypise na jakekoli strance
   |--------------------------------------------------------------------------
   | TYTO PRAVIDLA SE VZTAHUJI KE VSEM MOZNYM PRVKUM
   | ('meta','view','css','js','string')
   |--------------------------------------------------------------------------
  */
 $config['header']['meta'][] = array(
-	 'name' => 'copyright',
-	 'content' => '(c) 2013 pavadesign.cz - Pavel Vais',
+    'name' => 'viewport',
+    'content' => 'width=device-width, initial-scale=1.0, maximum-scale=1',
+);
+$config['header']['meta'][] = array(
+    'property' => 'og:site_name',
+    'content' => 'YOUR SITE NAME',
 );
 
+$config['header']['meta'][] = array(
+    'property' => 'og:type',
+    'content' => 'YOUR SITE TYPE'
+	   // more on https://developers.facebook.com/docs/reference/opengraph
+);
 
 $config['header']['meta'][] = array(
-	 'name' => 'viewport',
-	 'content' => 'width=device-width, initial-scale=1.0, maximum-scale=1',
-);
-/*
-  $config['header']['meta'][] = array(
-  'property' => 'og:mark',
-  'content' => 'blahblah',
-  //'restriction' => 'fcb'
-  ); */
-$config['header']['meta'][] = array(
-	 'name' => 'robots',
-	 'content' => 'all,index,follow'
+    'name' => 'robots',
+    'content' => 'all,index,follow'
 );
 $config['header']['meta'][] = array(
-	 'name' => 'googlebot',
-	 'content' => 'index,follow,snippet,archive'
+    'name' => 'googlebot',
+    'content' => 'index,follow,snippet,archive'
 );
 
 /* $config['header']['link'][] = array(
@@ -130,49 +141,49 @@ $config['header']['meta'][] = array(
   |
   | $config['header']['css'][] = array(
   |	'url' => 'main',
-  |   'language' => 'cs',	//Omezeni pro jazyk
-  |   'compress' => true, // (pouze pro CSS a JS!)
-  |   'version' => true, // (CSS a JS! - verze cache souboru)
-  |   'name => 'nazevCacheSouboru', // (pouze pro CSS a JS!)
-  |	'deferred' => TRUE, // (JS) - ma se vypsat az na konec stranky?
+  |   'language' => 'cs',		// Omezeni pro jazyk
+  |   'compress' => true,		// [CSS, JS] => minifikace souboru
+  |   'version' => true,			// [CSS, JS] => verze cache souboru
+  |   'name => 'nazevCacheSouboru',// [CSS, JS] => nazev cache souboru
+  |	'deferred' => TRUE,			// [JS] - ma se vypsat az na konec stranky?
   |	'detection' => "isMobile" , "isTablet", "isiOS", "isAndroidOS", "isComputer"
   |					=> pri negaci staci pred to dat "!"
+  |  'localhost' => true		// Podminka, vypise se pouze pri localhostu,
+  |							// pri false se vypise pouze pokud NENI
+ * 							// pristup z localhostu
   | );
   | K CSS objektu se pristupuje stejne jako k jinym objektum.
-  | Plati zde take pravidla 'cover' a 'except' popripade muzeme tyto omezeni
-  | odkazat na objekt 'restriction'
+  | Plati zde take pravidla 'cover' a 'except'
   |
   |--------------------------------------------------------------------------
  */
 
 $config['header']['css'][] = array(
-	 'url' => array('bootstrap.min.css', 'font-awesome.min.css'),
-	 'cover' => 'all',
-	 'except' => 'administrace'
+    'url' => array('bootstrap.min.css', 'font-awesome.min.css','bootstrap-update.css'),
+    'except' => 'administrace'
 );
 $config['header']['css'][] = array(
-	 'url' => 'mystyle.css',
-	 'cover' => 'all',
-	 'except' => 'administrace'
+    'url' => 'mystyle.css',
+    'except' => 'administrace'
 );
 $config['header']['css'][] = array(
-	 'url' => array(
-		  'administration/bootstrap.min.css',
-		  'font-awesome.min.css',
-		  'administration/plugins/timeline/timeline.css',
-		  'administration/plugins/morris/morris-0.4.3.min.css',
-		  'administration/select2/select2.css',
-		  'administration/summernote.css',
-		  'administration/admin.css',
-		  
-	 ),
-	 'cover' => 'administrace',
+    'url' => array(
+	   'administration/bootstrap.min.css',
+	   'bootstrap-update.css',
+	   'font-awesome.min.css',
+	   'administration/plugins/timeline/timeline.css',
+	   'administration/plugins/morris/morris-0.4.3.min.css',
+	   'administration/select2/select2.css',
+	   'administration/summernote.css',
+	   'administration/admin.css',
+    ),
+    'cover' => array('administrace', 'dev')
 );
 $config['header']['css'][] = array(
-	 'url' => array(
-		  'administration/login.css',
-	 ),
-	 'cover' => 'administrace/login',
+    'url' => array(
+	   'administration/login.css',
+    ),
+    'cover' => 'administrace/login',
 );
 
 /**
@@ -193,30 +204,49 @@ $config['header']['css'][] = array(
   |--------------------------------------------------------------------------
  */
 $config['header']['js'][] = array(
-	 'url' => array(
-		  'http://code.jquery.com/jquery-1.10.2.min.js',
-		  'plugins/jquery.confirm.js'
-	 ),
-	 'deferred' => true,
-	 'except' => 'administrace'
+    'url' => 'http://code.jquery.com/jquery-1.10.2.min.js',
+    'deferred' => true,
+    'localhost' => false
+);
+$config['header']['js'][] = array(
+    'url' => 'jquery-1.11.1.min.js',
+    'deferred' => true,
+    'localhost' => true
 );
 
 $config['header']['js'][] = array(
-	 'url' => array(
-		  'http://code.jquery.com/jquery-1.10.2.min.js',
-		  'administration/bootstrap.min.js',
-		  'administration/plugins/metisMenu/jquery.metisMenu.js',
-		  'administration/plugins/morris/raphael-2.1.0.min.js',
-		  'administration/plugins/morris/morris.js',
-		  'administration/summernote.min.js',
-		  'administration/select2/select2.min.js',
-		  'administration/select2/select2_locale_cs.js',
-		  'administration/admin.js'
-	 ),
-	 'cover' => 'administrace'
+    'url' => 'plugins/jquery.confirm.js',
+    'deferred' => true,
+    'except' => 'administrace'
 );
 
-//$config['header']['js'][] = 'ci.js';
+$config['header']['js'][] = array(
+    'url' => array(
+	   'administration/bootstrap.min.js',
+	   'administration/plugins/metisMenu/jquery.metisMenu.js',
+	   'administration/plugins/morris/raphael-2.1.0.min.js',
+	   'administration/plugins/morris/morris.js',
+	   'administration/summernote.min.js',
+	   'administration/select2/select2.min.js',
+	   'administration/select2/select2_locale_cs.js',
+	   'administration/admin.js'
+    ),
+    'deferred' => true,
+    'cover' => array('dev', 'administrace')
+);
+$config['header']['js'][] = array(
+    'url' => array(
+	   'respond.min.js'
+    )
+);
+
+$config['header']['js'][] = array(
+    'url' => array(
+	   'formValidation.js',
+    ),
+    'deferred' => true
+);
+
 
 /*
   |--------------------------------------------------------------------------

@@ -113,9 +113,10 @@ class Form extends My_Controller
 		$data['generator'] = $generator;
 		
 		
-		
 		$form = new Form\Form( 'dev/form/ajaxresponse' );
-		$form->addText( 'form2el1', 'TEST1:' )
+		$form->addPassword("fefe","zadej heslo zmrde")
+				  ->setRule(Form\Form::RULE_NUMBER, "JENOM CISLA zmDRE!!!");
+		$form->addText( 'form2el1', 'TEST15368585:' )
 				  ->setRule( \Form\Form::RULE_MIN_CHARS, 'min. 5 charů!!!', 5 )
 				  ->setRule( \Form\Form::RULE_NUMBER, 'čísla to musí byt!!!' );
 		$form->addText( 'form2el2', 'email:' )

@@ -4,20 +4,12 @@ if ( !defined( 'BASEPATH' ) )
 	exit( 'No direct script access allowed' );
 
 /**
- * Administracni rozcestnik
- * @author Pavel Vais
  * @property CI_Loader $load
- * @property CI_Form_validation $form_validation
  * @property CI_Input $input
- * @property CI_Email $email
  * @property CI_URI $uri
+ * @property My_Output $output
  * @property CI_DB_active_record $db
- * @property Header $header
- * @property Menu $menu
- * @property Tank_auth $tank_auth
- * @property DbBackup $dbbackup
- * @property Roles $roles
- * @property Cache $cache
+ * @property MY_Lang $lang
  */
 class Index extends My_Controller
 {

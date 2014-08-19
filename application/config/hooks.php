@@ -26,6 +26,12 @@ $hook['pre_system'] = array(
 	 'filepath' => 'hooks',
 );
 
+$hook['pre_local_controller'] = array(
+	 'function' => 'loadController',
+	 'filename' => 'customController.php',
+	 'filepath' => 'hooks',
+);
+
 $hook['post_controller_constructor'] = array(
 	 'class' => 'Annotation',
 	 'function' => 'check',
@@ -33,12 +39,20 @@ $hook['post_controller_constructor'] = array(
 	 'filepath' => 'hooks',
 );
 
+/*$hook['post_system'] = array(
+	 'class' => 'autoloader_reqfiler',
+	 'function' => 'saveCache',
+	 'filename' => 'autoload_helper.php',
+	 'filepath' => 'helpers',
+);*/
+
+/*
 $hook['post_controller_constructor'] = array(
 	 'class' => 'Retina',
 	 'function' => 'init',
 	 'filename' => 'retina.php',
 	 'filepath' => 'hooks',
-);
+);*/
 
 
 /* End of file hooks.php */

@@ -81,7 +81,7 @@ $autoload['helper'] = array('url','autoload','debug','form',"secure");
 |
 */
 
-$autoload['config'] = array();
+$autoload['config'] = array('errors');
 
 
 /*

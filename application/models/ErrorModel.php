@@ -38,6 +38,10 @@ class ErrorModel extends DML\CommonModel
 		return $this->update();
 	}
 	
+	/**
+	 * Delete all error messages
+	 * @return type
+	 */
 	function flush()
 	{
 		$this->db->where( 'viewed', 0 )

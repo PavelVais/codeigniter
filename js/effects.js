@@ -5,7 +5,7 @@ var css3_engine = {
 	},
 	scaleIn: function(jqElement, speed) {
 		console.log('scaleIn');
-		return css3_engine.animator(jqElement, 'scale-0 '+(speed === 'fast' ?  't' : 't-fast'),'scale-1 '+(speed === 'fast' ?  't-fast' : 't'),speed === 'fast' ? 150 : 350);
+		return css3_engine.animator(jqElement, (speed === 'fast' ?  't' : 't-fast')+' scale-0',(speed === 'fast' ?  't-fast' : 't')+' scale-1',speed === 'fast' ? 150 : 350);
 	},
 	vibrate: function(jqElement) {
 		console.log('scaleIn');
@@ -39,7 +39,4 @@ var css3_engine = {
 		}, promiseTimeOut);
 		return $d.promise();
 	}
-
-
-
 }

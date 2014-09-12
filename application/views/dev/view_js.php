@@ -1,5 +1,4 @@
-<?php Head::generate( 'Úvodní stránka', FALSE ); ?>
-<?php Head::generate(); ?>
+<?php \Head\Head2::generate( 'Úvodní stránka'); ?>
 <script>
 	$(document).ready(function() {
 	});

@@ -18,30 +18,55 @@ class Errors extends My_Controller {
 	}
 
 	public function index() {
-		$this->load->helper('text');
-		\Head\Head2::addCSS('mystyle.css');
+		$this->load->helper( 'text' );
+		\Head\Head2::addCSS( 'mystyle.css' );
 		$EM = new ErrorModel();
 		$data['errors'] = $EM->getAll();
-			   
+
 		$this->load->view( "administrace/errors/view_index", $data );
 	}
-	
-	public function deleteErrorMessage($id)
-	{
+
+	/**
+	 * Vymaze chybovou hlasku
+	 * @param int $id
+	 */
+	public function deleteErrorMessage($id) {
 		$EM = new ErrorModel();
-		if ($EM->deleteByID($id))
-		{
-			$this->output->json_append('response', 'zpráva byla smazána.');
-		} else {
-			$this->output->json_append('response', 'zpráva nebyla smazána',500);
+		if ( $EM->deleteByID( $id ) ) {
+			$this->output->json_append( 'response', 'zpráva byla smazána.' );
+		}
+		else {
+			$this->output->json_append( 'response', 'zpráva nebyla smazána', 500 );
 		}
 		$this->output->json_flush();
-			   
 	}
-	
-	public function sendReport()
-	{
-		$this->load->helper('text');
+
+	/**
+	 * Vymaze vsechny chyby
+	 */
+	public function deleteErrorMessages() {
+		$EM = new ErrorModel();
+		if ( $EM->flush() ) {
+			$this->output->json_append( 'response', 'Chybné hlášky byly smazány.' );
+		}
+		else {
+			$this->output->json_append( 'response', 'Chybné hlášky nebyly smazány.', 500 );
+		}
+		$this->output->json_flush();
+	}
+
+	/**
+	 * Vsechny chyby prevede jako prectene
+	 */
+	public function makeErrorsViewed() {
+		$EM = new ErrorModel();
+		$EM->makeViewed();
+		$this->output->json_append( 'response', 'chybné hlášky byly označeny jako přečtené.' );
+		$this->output->json_flush();
+	}
+
+	public function sendReport() {
+		$this->load->helper( 'text' );
 		$EM = new ErrorModel();
 		$data['errors'] = $EM->getAll();
 		$this->load->view( "administrace/errors/view_report", $data );

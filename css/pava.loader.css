@@ -1,0 +1,37 @@
+.pava-loader-mask {
+	z-index: 100;
+	position: absolute;
+	top:0;
+	left:0;
+	background: rgba(150,150,150,.7);
+	width: 100%;
+	height: 100%;
+	zoom: 1;
+}
+.pava-loader-holder {
+	z-index: 20001;
+	position: absolute;
+	top: 0;
+	left: 0;
+	/*	border:1px solid #6593cf;*/
+	background: #222;
+	background: rgba(15,15,15,.7);
+	padding: 10px;
+	-webkit-border-radius: 8px;
+	border-radius: 8px;
+	padding: 15px;
+	color: #FFF;
+	font-size: 18px;
+}
+.loadmask-msg div {
+	padding:10px 10px 12px 35px;
+	background: #fbfbfb url('../images/loading2.gif') no-repeat 5px 5px;
+	line-height: 16px;
+	/*	border:1px solid #a3bad9;*/
+	color:#222;
+	font:normal 11px tahoma, arial, helvetica, sans-serif;
+	cursor:wait;
+}
+.masked {
+	overflow: hidden !important;
+}

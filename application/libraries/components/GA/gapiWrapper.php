@@ -17,13 +17,18 @@ class gapiWrapper
 	private $metric;
 	private $reportID;
 	private $sort;
+	
+	private $login;
+	private $password;
 
-	public function __construct($reportID)
+	public function __construct($reportID,$login,$password)
 	{
 		$this->cache = new Cache;
 		$this->setRange(date('Y-m-d',strtotime("-1 month")), date('Y-m-d'));
 		$this->sort('date');
 		$this->reportID = $reportID;
+		$this->login = $login;
+		$this->password = $password;
 	}
 
 	/**
@@ -77,8 +82,7 @@ class gapiWrapper
 	{
 		if ( ($this->gapi = $this->cache->get( $this->getCachePath() )) == FALSE )
 		{
-			\FB::info( "jsemtuu", '"jsemtuu"' );
-			$this->gapi = new gapi( 'vaispavel@gmail.com', 'b3d2d1f3g5g6d2' );
+			$this->gapi = new gapi( $this->login, $this->password );
 			$this->gapi->requestReportData( $this->reportID, $this->dimension, $this->metric, $this->sort, $this->filter, $this->range[0], $this->range[1] );
 			$this->saveCache( $this->gapi );
 		}

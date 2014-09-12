@@ -1,6 +1,6 @@
-/*!
+/*
  * Bootstraps update by Pavel Vais
  */
 .tooltip-inner { width: 300px;}
-.img-center { margin-left: auto; margin-right: auto;}
+.img-center { margin-left: auto; margin-right: auto; display: block;}
 .no-overflow { overflow-x: hidden;}

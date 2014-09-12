@@ -85,6 +85,9 @@ h1 { color: #000; text-shadow: 2px 4px 3px rgba(0,0,0,0.3); top: 0;}
 
 #main .input-append,#main .input-prepend { display: block;}
 
+.alert.error-msg-new { background-color: #9F6000;}
+
+
 
 /* Large desktop */
 @media (min-width: 1200px) { 

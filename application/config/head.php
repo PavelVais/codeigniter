@@ -159,7 +159,7 @@ $config['header']['meta'][] = array(
  */
 
 $config['header']['css'][] = array(
-    'url' => array('bootstrap.min.css', 'font-awesome.min.css','bootstrap-update.css'),
+    'url' => array('bootstrap.min.css', 'font-awesome.min.css','bootstrap.update.css'),
     'except' => 'administrace'
 );
 $config['header']['css'][] = array(
@@ -169,13 +169,14 @@ $config['header']['css'][] = array(
 $config['header']['css'][] = array(
     'url' => array(
 	   'administration/bootstrap.min.css',
-	   'bootstrap-update.css',
+	   'bootstrap.update.css',
 	   'font-awesome.min.css',
 	   'administration/plugins/timeline/timeline.css',
 	   'administration/plugins/morris/morris-0.4.3.min.css',
 	   'administration/select2/select2.css',
 	   'administration/summernote.css',
 	   'administration/admin.css',
+	   'administration/notifier.css',
     ),
     'cover' => array('administrace', 'dev')
 );
@@ -229,7 +230,9 @@ $config['header']['js'][] = array(
 	   'administration/summernote.min.js',
 	   'administration/select2/select2.min.js',
 	   'administration/select2/select2_locale_cs.js',
-	   'administration/admin.js'
+	   'administration/admin.js',
+	   'effects.js',
+	   'administration/notifier.js'
     ),
     'deferred' => true,
     'cover' => array('dev', 'administrace')

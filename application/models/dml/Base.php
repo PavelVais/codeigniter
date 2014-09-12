@@ -123,6 +123,9 @@ abstract class Base extends \CI_Model
 	 */
 	function __construct($table_name)
 	{
+		if (!class_exists('DML/ValidatorInterface'))
+			require APPPATH.'models/dml/ValidatorInterface.php';
+		
 		$this->ci = & get_instance();
 		$this->name = $table_name;
 		$this->cache = $this->ci->cache;
@@ -132,6 +135,8 @@ abstract class Base extends \CI_Model
 		$this->joinsMN = array();
 		$this->data = array();
 		$this->select = array();
+		
+		
 
 	}
 
@@ -394,7 +399,7 @@ abstract class Base extends \CI_Model
 
 		if ( !$this->disableValidation )
 		{
-			\Autoloader::$finder->find(__NAMESPACE__.'\ValidatorInterface');
+			
 			if ( $method_insert )
 				$validator = new ValidatorInsert();
 			else

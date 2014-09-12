@@ -22,9 +22,24 @@
 
 						<div class="panel-heading">
 							<i class="fa fa-bar-chart-o fa-fw"></i> Výpis chyb na serveru
+							<div class="pull-right">
+								<div class="btn-group">
+									<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+										<i class="fa fa-cogs"></i> Operace
+										<span class="caret"></span>
+									</button>
+									<ul class="dropdown-menu pull-right" role="menu">
+										<li><a id="make-errors-viewed" href="<?php echo URI\Link::URL( '!errors/makeErrorsViewed' ) ?>">Označit chyby jako přečtené</a>
+										</li>
+										<li class="divider"></li>
+										<li><a href="<?php echo URI\Link::URL( '!errors/deleteErrorMessages' ) ?>">Vymazat všechny chyby</a>
+										</li>
+									</ul>
+								</div>
+							</div>
 						</div>
 						<!-- /.panel-heading -->
-						<div class="panel-body">
+						<div id="error-holder" class="panel-body">
 							<?php foreach ( $errors as $er ): ?>
 								<div class="alert <?php echo $er->viewed ? 'alert-warning' : 'alert-danger' ?>">
 									<span class="pull-right close" data-id="<?php echo $er->id ?>">x</span>
@@ -63,7 +78,6 @@
 
 	</div>
 	<?php $this->load->view( "administrace/view_footer" ); ?>
-	<?php Head\Head2::addJS( 'effects.js' ) ?>
 	<?php echo Head\Head2::generateDeferred(); ?>
 	<script>
 		$(document).ready(function() {
@@ -71,29 +85,50 @@
 				$(this).next().fadeToggle(200);
 				return false;
 			})
-			
+
 			$('.close').click(function() {
-			var t = $(this);
-			$.ajax({
-				url: '<?php echo \URI\Link::URL('!errors/deleteErrorMessage') ?>/'+t.data('id'),
-				type: "post",
-				timeout: 8000,
-				success: function(data)
-				{
-					try {
-						data = jQuery.parseJSON(data);
-						css3_engine.scaleOut(t.closest('.alert')).done(function(){
-							t.closest('.alert').remove();
-						});
+				var t = $(this);
+				$.ajax({
+					url: '<?php echo \URI\Link::URL( '!errors/deleteErrorMessage' ) ?>/' + t.data('id'),
+					type: "post",
+					timeout: 8000,
+					success: function(data)
+					{
+						try {
+							data = jQuery.parseJSON(data);
+							notifier.text(data.response,true);
+							css3_engine.scaleOut(t.closest('.alert')).done(function() {
+								t.closest('.alert').remove();
+							});
+						}
+						catch (e) {
+						}
 					}
-					catch (e) {
-					}
-				}
+				});
+				return false;
 			});
-			return false;
+			$('#make-errors-viewed').click(function() {
+				var t = $(this);
+				$.ajax({
+					url: t.attr('href'),
+					type: "post",
+					timeout: 8000,
+					success: function(data)
+					{
+						try {
+							data = jQuery.parseJSON(data);
+							$('#error-holder').find('.alert').removeClass('alert-danger').addClass('alert-warning');
+							notifier.text(data.response);
+						}
+						catch (e) {
+							notifier.text('Nastala neznámá chyba.',true);
+						}
+					}
+				});
+				return false;
+			});
 		});
-		});
-		
+
 	</script>
 
 </body>

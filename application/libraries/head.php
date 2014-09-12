@@ -42,7 +42,6 @@ class Head
 			echo "<html lang=" . self::get_setting( 'language' ) . '>' . PHP_EOL;
 			echo "<head>" . PHP_EOL;
 			echo '<meta charset=' . self::get_setting( 'encode' ) . '>' . PHP_EOL;
-			echo link_tag( current_url(), 'canonical', 'none' ) . PHP_EOL;
 		}
 
 		self::print_tags( "meta" );

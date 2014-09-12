@@ -157,6 +157,6 @@ class Helper
 		}
 		return $a;
 	}
-
+}
 /* End of file dmlhelper.php */
 /* Location: ./application/models/dmlhelper.php */

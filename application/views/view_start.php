@@ -4,6 +4,14 @@
 		<div class="hero-unit">
 			<h1 class=""><i class='fa fa-bullhorn'></i> Codeigniter <?php echo CI_VERSION ?>, PHP <?php echo PHP_VERSION ?> je nainstalován a běží...</h1>
 			<div class="well">
+				
+				<h2>pack verze: 1.6.1</h2>
+				<ul>
+					<li><span class="label label-success">administrace</span> Přidáno: Chyby na serveru jdou nyní mazat a označit jako přečtené</li>
+					<li><span class="label label-success">administrace</span> Přidáno: JS knihovna notifier.js, která umí vytvářet notifikační lišty s informacemi</li>
+					<li>Přidáno: JS knihovna pava.loader.js -> Umožnuje prvkům měnit text a přidávat loading upozornění. více na <a href="<?php echo site_url('dev/loader') ?>">dev/loader</a></li>
+					<li>Přidáno: Do souboru header/html5.php javascript kód, který nepředává errory při používání debug funkcí (console, warn..). pozor: kód se aplikuje pouze při DEVELOPMENT modu!</li>
+				</ul>
 				<h2>pack verze: 1.6.0</h2>
 				<ul>
 					<li>Přidáno: Složka custom_controller do složky libraries, ve které se ukládají ostatní controllery. Momentálně je zde <strong>API_Controller</strong>, který je přizpůsoben na vnější komunikaci</li>

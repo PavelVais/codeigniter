@@ -887,7 +887,7 @@ class Common_Object
 	 * zmenit cache dotycneho souboru
 	 * @var string
 	 */
-	public $cacheVersion;
+	public $cacheVersion = null;
 
 	public function __construct($url = null, $type = self::TYPE_JAVASCRIPT, $deferred = false)
 	{
@@ -926,7 +926,7 @@ class Common_Object
 
 	public function getCacheName($prefix)
 	{
-		return $prefix . $this->cacheName . $this->version . '.' . strtolower( $this->type );
+		return $prefix . $this->cacheName . $this->version . '.' . strtolower( $this->type ).$this->cacheVersion;
 	}
 
 	public function setCacheVersion($string)

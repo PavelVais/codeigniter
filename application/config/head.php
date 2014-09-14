@@ -70,6 +70,7 @@ $config['header']['cache-js-prefix'] = 'cache/cacheminifed_';
  * Paklize je vyplneno, pripoji se to k adrese - tim padem to prinuti prohlizece
  * aktaulizovat cache (paklize je pres htaccess zapnuta)
  * Pozor: Pouziva se jen pri produkcnim modu!
+ * Paklize zde neni nic vyplneno, zadna verze se za cache neprida
  */
 $config['header']['cache-css-version'] = '';
 $config['header']['cache-js-version'] = '';

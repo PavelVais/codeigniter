@@ -7,7 +7,8 @@ namespace Head;
  * Head2::addJS();
  * @author Vais
  */
-class Head2 {
+class Head2
+{
 
 	private static $ci;
 	private static $container;
@@ -31,7 +32,8 @@ class Head2 {
 	 */
 	static $singleton;
 
-	static public function init() {
+	static public function init()
+	{
 		self::$ci = & get_instance();
 		self::$singleton = new self;
 		self::$ci->load->config( 'head' );
@@ -46,11 +48,13 @@ class Head2 {
 	 * @param string $title
 	 * @param boolean $close
 	 */
-	static function generate($title, $close = true) {
+	static function generate($title, $close = true)
+	{
 		//= Something is really happening!! Let's load additional stuff
 		self::$singleton->init_config();
 
-		if ( self::$state === 0 ) {
+		if ( self::$state === 0 )
+		{
 			//= Opravdu se neco generuje! Hura nacist dodatecne soubory a dalsi veci
 			self::addString( '<link href="' . base_url() . self::get_setting( 'favicon' ) . '" rel="icon" type="image/x-icon">' );
 			self::$settings['title'] = $title;
@@ -62,12 +66,14 @@ class Head2 {
 			echo '<link rel="canonical" href="' . self::$settings['canonical'] . '">' . PHP_EOL;
 		}
 
-		if ( ENVIRONMENT == 'production' ) {
+		if ( ENVIRONMENT == 'production' )
+		{
 			self::$singleton->productionGenerate();
 		}
-		else {
+		else
+		{
 			self::$singleton->generateObjects(
-				   self::$singleton->filter( 'deferred', self::$state !== 0 ) );
+					  self::$singleton->filter( 'deferred', self::$state !== 0 ) );
 		}
 
 		if ( self::$state === 0 )
@@ -82,13 +88,16 @@ class Head2 {
 	/**
 	 * Generate deferred objects
 	 */
-	static function generateDeferred() {
-		if ( ENVIRONMENT == 'production' ) {
+	static function generateDeferred()
+	{
+		if ( ENVIRONMENT == 'production' )
+		{
 			self::$singleton->productionGenerate();
 		}
-		else {
+		else
+		{
 			self::$singleton->generateObjects(
-				   self::$singleton->filter( 'deferred', true ) );
+					  self::$singleton->filter( 'deferred', true ) );
 		}
 		self::$state = 2;
 	}
@@ -100,7 +109,8 @@ class Head2 {
 	 * @param string $site_url - canonicka url, pokud neni vyplnena, pouzije se
 	 * jiz stavajici canonicka url
 	 */
-	static public function facebook_metas($title, $image_url, $description = null, $site_url = null) {
+	static public function facebook_metas($title, $image_url, $description = null, $site_url = null)
+	{
 		$data = new Common_Object();
 		$data->meta_type = 'property';
 		$data->meta_type_value = 'og:image';
@@ -122,7 +132,8 @@ class Head2 {
 		$data->meta_content = $site_url;
 		self::addMeta( $data );
 
-		if ( $description !== null ) {
+		if ( $description !== null )
+		{
 			$data = new Common_Object();
 			$data->meta_type = 'property';
 			$data->meta_type_value = 'og:description';
@@ -134,7 +145,8 @@ class Head2 {
 	/**
 	 * This function just close head. Wow, isn't it?
 	 */
-	static public function close() {
+	static public function close()
+	{
 		echo '</head>' . PHP_EOL;
 	}
 
@@ -144,20 +156,25 @@ class Head2 {
 	 * @param string $setting
 	 * @return string
 	 */
-	static private function get_setting($setting) {
-		if ( self::$settings['use_lang_file'] ) {
-			if ( in_array( $setting, array('doctype', 'keywords', 'language', 'title-postfix') ) ) {
+	static private function get_setting($setting)
+	{
+		if ( self::$settings['use_lang_file'] )
+		{
+			if ( in_array( $setting, array('doctype', 'keywords', 'language', 'title-postfix') ) )
+			{
 				return self::$ci->lang->line( self::$settings[$setting] );
 			}
 		}
 		return self::$settings[$setting];
 	}
 
-	public function __construct() {
+	public function __construct()
+	{
 		
 	}
 
-	private function init_config() {
+	private function init_config()
+	{
 		if ( self::$init_loaded )
 			return;
 		self::$init_loaded = true;
@@ -203,7 +220,8 @@ class Head2 {
 			}
 	}
 
-	static function setCanonicalURL($url) {
+	static function setCanonicalURL($url)
+	{
 		self::$settings['canonical'] = $url;
 	}
 
@@ -212,7 +230,8 @@ class Head2 {
 	 * @param Common_Object / string $data - muze se jednat o URL adresu
 	 * @return Common_Object
 	 */
-	static function &addJS($data) {
+	static function &addJS($data)
+	{
 		return self::$singleton->addData( $data, Common_Object::TYPE_JAVASCRIPT );
 	}
 
@@ -221,11 +240,13 @@ class Head2 {
 	 * @param Common_Object / string $data - muze se jednat o URL adresu
 	 * @return Common_Object
 	 */
-	static function &addCSS($data) {
+	static function &addCSS($data)
+	{
 		return self::$singleton->addData( $data, Common_Object::TYPE_CSS );
 	}
 
-	static function &addMeta($data) {
+	static function &addMeta($data)
+	{
 		return self::$singleton->addData( $data, Common_Object::TYPE_METADATA );
 	}
 
@@ -235,7 +256,8 @@ class Head2 {
 	 * - muze byt pouze string, nebo kompletni head common object.
 	 * @return Common_Object
 	 */
-	static function &addString($data) {
+	static function &addString($data)
+	{
 		return self::$singleton->addData( $data, Common_Object::TYPE_STRING );
 	}
 
@@ -244,7 +266,8 @@ class Head2 {
 	 * @param string / \Head\Common_Object $data
 	 * @return Common_Object
 	 */
-	static function &addView($data) {
+	static function &addView($data)
+	{
 		return self::$singleton->addData( $data, Common_Object::TYPE_VIEW );
 	}
 
@@ -257,7 +280,8 @@ class Head2 {
 	 * @param boolean $extract - vyjme prvky z kontejneru 
 	 * @return array
 	 */
-	static function filter($attribute, $value, $type = null, $extract = false) {
+	static function filter($attribute, $value, $type = null, $extract = false)
+	{
 		$return = array();
 		foreach ( self::$container as $K => &$types )
 		{
@@ -266,7 +290,8 @@ class Head2 {
 
 			foreach ( $types as $key => $data )
 			{
-				if ( $data->{$attribute} == $value ) {
+				if ( $data->{$attribute} == $value )
+				{
 					$return[] = $data;
 					if ( $extract )
 						unset( $types[$key] );
@@ -287,10 +312,12 @@ class Head2 {
 	 * [true] - hledat dle parametru cacheName (name)
 	 * @return Common_Object / null
 	 */
-	static function &getElement($type, $term, $byCacheName = false) {
+	static function &getElement($type, $term, $byCacheName = false)
+	{
 		foreach ( self::$container[$type] as &$data )
 		{
-			if ( (!$byCacheName && in_array( $url, $data->url )) || ($byCacheName && $data->cacheName == $url) ) {
+			if ( (!$byCacheName && in_array( $url, $data->url )) || ($byCacheName && $data->cacheName == $url) )
+			{
 				return $data;
 			}
 		}
@@ -305,22 +332,27 @@ class Head2 {
 	 * @param string $type
 	 * @return Common_Object
 	 */
-	private function &addData($data, $type) {
-		if ( is_string( $data ) ) {
+	private function &addData($data, $type)
+	{
+		if ( is_string( $data ) )
+		{
 			$data = new Common_Object( $data, $type );
 			$data->type = $type;
 		}
-		else if ( is_array( $data ) ) {
+		else if ( is_array( $data ) )
+		{
 			$data = self::$singleton->array2CommonObj( $data, $type );
 			$data->type = $type;
 		}
-		else {
+		else
+		{
 			$data->type = $type;
 		}
 		//\FB::info($data->url,'url');
 		//\FB::info(self::$singleton->validate( $data ),'a');
 		//\FB::info(self::$container,'container');
-		if ( !self::$singleton->validate( $data ) ) {
+		if ( !self::$singleton->validate( $data ) )
+		{
 			$c = new Common_Object();
 			return $c;
 		}
@@ -330,7 +362,8 @@ class Head2 {
 		if ( self::$state === 1 )
 			$data->deferred = true;
 
-		if ( !self::$init_loaded ) {
+		if ( !self::$init_loaded )
+		{
 			self::$singleton->init_config();
 		}
 
@@ -339,16 +372,20 @@ class Head2 {
 		return self::$container[$data->type][count( self::$container[$data->type] ) - 1];
 	}
 
-	private function productionGenerate() {
-		if ( self::$state === 0 ) {
+	private function productionGenerate()
+	{
+		if ( self::$state === 0 )
+		{
 			$result = self::$container[Common_Object::TYPE_CSS];
-			if ( !empty( $result ) ) {
+			if ( !empty( $result ) )
+			{
 				$result = self::$singleton->mergeObjects( $result );
 				$result->minify = true;
 				$result->cacheName = $result->getUniqueID();
 				$result->version = '1.0';
+				$result->setCacheVersion( self::get_setting( 'cache-css-version' ) );
 				$result->debug = self::$production_refresh ||
-					   self::$singleton->compare_files( $result->url, 'css/' . $result->getCacheName( self::$settings['cache-css-prefix'] ), 'css/' );
+						  self::$singleton->compare_files( $result->url, 'css/' . $result->getCacheName( self::$settings['cache-css-prefix'] ), 'css/' );
 				self::$singleton->generateCSS( $result );
 			}
 			self::$container[Common_Object::TYPE_CSS] = array();
@@ -356,17 +393,21 @@ class Head2 {
 		$result = self::$singleton->filter( 'deferred', self::$state !== 0, Common_Object::TYPE_JAVASCRIPT, true );
 
 		//= Pokud je co, tak to vygenerujeme (nejdrive vsak sjednotime)
-		if ( !empty( $result ) ) {
+		if ( !empty( $result ) )
+		{
 			$result = self::$singleton->mergeObjects( $result );
 			$result->minify = true;
 			$result->cacheName = $result->getUniqueID();
 			$result->version = '1.0';
+
+			$result->setCacheVersion( self::get_setting( 'cache-js-version' ) );
+
 			$result->debug = self::$production_refresh ||
-				   self::$singleton->compare_files( $result->url, 'js/' . $result->getCacheName( self::$settings['cache-js-prefix'] ), 'js/' );
+					  self::$singleton->compare_files( $result->url, 'js/' . $result->getCacheName( self::$settings['cache-js-prefix'] ), 'js/' );
 			self::$singleton->generateJS( $result );
 		}
 		self::$singleton->generateObjects(
-			   self::$singleton->filter( 'deferred', self::$state !== 0 ) );
+				  self::$singleton->filter( 'deferred', self::$state !== 0 ) );
 
 		return $this;
 	}
@@ -375,7 +416,8 @@ class Head2 {
 	 * Oznaci produkcni balicky jako debugove , tzn je pri kazdem refreshi prepise a znova
 	 * zminimalizuje.
 	 */
-	static function productionRefresh() {
+	static function productionRefresh()
+	{
 		self::$production_refresh = true;
 		/* self::$singleton->init_config();
 		  $result = self::$container[Common_Object::TYPE_CSS];
@@ -417,21 +459,26 @@ class Head2 {
 	 * smaze pouze dotycny objekt, ktery je ulozen jako cache.
 	 * V druhem pripade vymaze vscehny CSS a JS cache soubory
 	 */
-	static function cacheDelete(Common_Object $file = null) {
-		if ( $file !== null ) {
+	static function cacheDelete(Common_Object $file = null)
+	{
+		if ( $file !== null )
+		{
 			$e = 'css';
-			if ( $file->type == Common_Object::TYPE_JAVASCRIPT ) {
+			if ( $file->type == Common_Object::TYPE_JAVASCRIPT )
+			{
 				$e = 'js/cache';
 			}
 			$n = $e . '/' . $file->getCacheName( self::$settings['cache-css-prefix'] );
 			//\FB::info( $n, 'file_path' );
 			//\FB::info( file_exists( $n ), 'file_exists' );
-			if ( file_exists( $n ) ) {
+			if ( file_exists( $n ) )
+			{
 				return unlink( $n );
 			}
 			return false;
 		}
-		else {
+		else
+		{
 			foreach ( self::$container['JS'] as $data )
 			{
 				/* @var $data Common_Object */
@@ -449,7 +496,8 @@ class Head2 {
 		}
 	}
 
-	private function generateObjects($objects) {
+	private function generateObjects($objects)
+	{
 		foreach ( $objects as $object )
 		{
 			self::$singleton->{'generate' . $object->type}( $object );
@@ -461,11 +509,14 @@ class Head2 {
 	 * @param type $array
 	 * @param type $type
 	 */
-	private function array2CommonObj($array, $type) {
-		if ( !is_array( $array ) ) {
+	private function array2CommonObj($array, $type)
+	{
+		if ( !is_array( $array ) )
+		{
 			$obj = new Common_Object( $array, $type );
 		}
-		else {
+		else
+		{
 			$obj = new Common_Object( null, $type );
 			if ( isset( $array['cover'] ) )
 				$obj->coverURI = $array['cover'];
@@ -493,7 +544,8 @@ class Head2 {
 			if ( isset( $array['url'] ) )
 				$obj->addURL( $array['url'] );
 		}
-		if ( $type == 'META' ) {
+		if ( $type == 'META' )
+		{
 			$obj->meta_type = isset( $array['property'] ) ? Common_Object::META_TYPE_PROPERTY : (isset( $array['name'] ) ? Common_Object::META_TYPE_NAME : Common_Object::META_TYPE_HTTP_EQUIV);
 			$obj->meta_type_value = $array[$obj->meta_type];
 			$obj->meta_content = $array['content'];
@@ -506,7 +558,8 @@ class Head2 {
 	 * @param array $objects
 	 * @return Common_Object
 	 */
-	private function mergeObjects($objects) {
+	private function mergeObjects($objects)
+	{
 
 		/* @var $finalObj Common_Object */
 		$finalObj = array_shift( $objects );
@@ -515,7 +568,8 @@ class Head2 {
 			/* @var $object Common_Object */
 			$finalObj->addURL( $object->url );
 
-			if ( $finalObj->cacheName === '' && $object->cacheName !== '' ) {
+			if ( $finalObj->cacheName === '' && $object->cacheName !== '' )
+			{
 				$finalObj->cacheName = $object->cacheName;
 			}
 		}
@@ -529,11 +583,14 @@ class Head2 {
 	 * @param \Head\Common_Object $object
 	 * @return \Head\Head2
 	 */
-	private function generateJS(Common_Object $object) {
+	private function generateJS(Common_Object $object)
+	{
 
-		if ( $object->minify ) {
+		if ( $object->minify )
+		{
 			$url = $object->getCacheName( self::$settings['cache-js-prefix'] );
-			if ( $object->debug || !file_exists( 'js/' . $url ) ) {
+			if ( $object->debug || !file_exists( 'js/' . $url ) )
+			{
 				foreach ( $object->url as &$u )
 				{
 					$u = Common_Object::is_url_external( $u ) ? $u : 'js/' . $u;
@@ -560,10 +617,13 @@ class Head2 {
 	 * @param \Head\Common_Object $object
 	 * @return \Head\Head2
 	 */
-	private function generateCSS(Common_Object $object) {
-		if ( $object->minify ) {
+	private function generateCSS(Common_Object $object)
+	{
+		if ( $object->minify )
+		{
 			$url = $object->getCacheName( self::$settings['cache-css-prefix'] );
-			if ( $object->debug || !file_exists( 'css/' . $url ) ) {
+			if ( $object->debug || !file_exists( 'css/' . $url ) )
+			{
 
 				foreach ( $object->url as &$u )
 				{
@@ -591,7 +651,8 @@ class Head2 {
 	 * @param \Head\Common_Object $object
 	 * @return \Head\Head2
 	 */
-	private function generateVIEW(Common_Object $object) {
+	private function generateVIEW(Common_Object $object)
+	{
 
 		foreach ( $object->url as $url )
 		{
@@ -606,7 +667,8 @@ class Head2 {
 	 * @param \Head\Common_Object $object
 	 * @return \Head\Head2
 	 */
-	private function generateSTRING(Common_Object $object) {
+	private function generateSTRING(Common_Object $object)
+	{
 
 		foreach ( $object->url as $url )
 		{
@@ -621,7 +683,8 @@ class Head2 {
 	 * @param \Head\Common_Object $object
 	 * @return \Head\Head2
 	 */
-	private function generateMETA(Common_Object $object) {
+	private function generateMETA(Common_Object $object)
+	{
 		echo '<meta ' . $object->meta_type . '="' . $object->meta_type_value . '" content="' . $object->meta_content . '">' . PHP_EOL;
 		return $this;
 	}
@@ -632,19 +695,24 @@ class Head2 {
 	 * @param \Head\Common_Object $object
 	 * @return boolean
 	 */
-	public function validate(Common_Object $object) {
+	public function validate(Common_Object $object)
+	{
 
 		//= Zadne validace nejsou potreba
-		if ( $object->coverURI == null && $object->exceptURI == null && $object->language == null && $object->localhost === null ) {
+		if ( $object->coverURI == null && $object->exceptURI == null && $object->language == null && $object->localhost === null )
+		{
 			return TRUE;
 		}
 
 		//= Je urcen jazyk, pro ktery se maji data aplikovat?
-		if ( $object->language != null && self::$ci->lang->lang() !== $object->language ) {
+		if ( $object->language != null && self::$ci->lang->lang() !== $object->language )
+		{
 			return FALSE;
 		}
-		if ( $object->localhost !== null ) {
-			if ( IS_LOCALHOST !== $object->localhost ) {
+		if ( $object->localhost !== null )
+		{
+			if ( IS_LOCALHOST !== $object->localhost )
+			{
 				return false;
 			}
 		}
@@ -659,7 +727,7 @@ class Head2 {
 
 		if ( $object->exceptURI !== null )
 			$good = !$this->is_in_url( $object->exceptURI ) && $good;
-		
+
 		return $good;
 	}
 
@@ -668,19 +736,24 @@ class Head2 {
 	 * @param type $rules
 	 * @return boolean 
 	 */
-	private function is_in_url($rules) {
-		if ( !is_array( $rules ) ) {
+	private function is_in_url($rules)
+	{
+		if ( !is_array( $rules ) )
+		{
 			$rules = array($rules);
 		}
 
 		foreach ( $rules AS $singl )
 		{
-			if ( is_array( $singl ) ) {
-				if ( self::$ci->uri->segment( $singl[1] ) == $singl[0] ) {
+			if ( is_array( $singl ) )
+			{
+				if ( self::$ci->uri->segment( $singl[1] ) == $singl[0] )
+				{
 					return true;
 				}
 			}
-			else {
+			else
+			{
 				$segmentCount = substr_count( $singl, '/' );
 				$total = self::$ci->uri->total_segments();
 				for ( $index = 1; $index <= $total; $index++ )
@@ -692,15 +765,18 @@ class Head2 {
 					//= Buildovani url adresy shodne s cover adresou
 					for ( $f = $index; $f <= $index + $segmentCount; $f++ )
 					{
-						if ( $f == $index + $segmentCount ) {
+						if ( $f == $index + $segmentCount )
+						{
 							$temp .= self::$ci->uri->segment( $f );
 						}
-						else {
+						else
+						{
 							$temp .= self::$ci->uri->slash_segment( $f );
 						}
 					}
 
-					if ( $temp == $singl ) {
+					if ( $temp == $singl )
+					{
 						return true;
 					}
 				}
@@ -709,17 +785,21 @@ class Head2 {
 		return false;
 	}
 
-	private function compare_files($files, $tofile, $filesPrefix = '') {
+	private function compare_files($files, $tofile, $filesPrefix = '')
+	{
 
 		// flag to check if any of the file was changed to rebuild all the set of files
-		if ( !is_array( $files ) ) {
+		if ( !is_array( $files ) )
+		{
 			$files = (array) $files;
 		}
 		//\FB::info( $tofile, 'tofile' );
-		if ( file_exists( $tofile ) ) {
+		if ( file_exists( $tofile ) )
+		{
 			$x = filemtime( $tofile );
 		}
-		else {
+		else
+		{
 			$x = 0;
 		}
 		//\FB::info( $x, 'x' );
@@ -727,7 +807,8 @@ class Head2 {
 		{
 			$filename = $filesPrefix . $j;
 			//\FB::info( filemtime( $filename ) . ' > ' . $x, 'compare (' . $filename . ')' );
-			if ( file_exists( $filename ) && filemtime( $filename ) > $x ) {
+			if ( file_exists( $filename ) && filemtime( $filename ) > $x )
+			{
 				return true;
 			}
 		}
@@ -736,7 +817,8 @@ class Head2 {
 
 }
 
-class Common_Object {
+class Common_Object
+{
 
 	const TYPE_JAVASCRIPT = 'JS';
 	const TYPE_CSS = 'CSS';
@@ -800,9 +882,18 @@ class Common_Object {
 	 */
 	public $localhost = null;
 
-	public function __construct($url = null, $type = self::TYPE_JAVASCRIPT, $deferred = false) {
+	/**
+	 * Prida se za adresu ve formatu (?v=STRING), donuti prohlizece
+	 * zmenit cache dotycneho souboru
+	 * @var string
+	 */
+	public $cacheVersion;
+
+	public function __construct($url = null, $type = self::TYPE_JAVASCRIPT, $deferred = false)
+	{
 		$this->type = $type;
-		if ( $url != null ) {
+		if ( $url != null )
+		{
 			$this->addURL( $url );
 		}
 
@@ -814,23 +905,37 @@ class Common_Object {
 	 * @param string / array $url
 	 * @return \Head\Common_Object
 	 */
-	public function addURL($url) {
+	public function addURL($url)
+	{
 
-		if ( !is_array( $url ) ) {
+		if ( !is_array( $url ) )
+		{
 			$this->url[] = $url;
 		}
-		else {
+		else
+		{
 			$this->url = array_merge( $this->url, $url );
 		}
 		return $this;
 	}
 
-	static function is_url_external($url) {
+	static function is_url_external($url)
+	{
 		return (strpos( $url, 'htt' ) === 0);
 	}
 
-	public function getCacheName($prefix) {
+	public function getCacheName($prefix)
+	{
 		return $prefix . $this->cacheName . $this->version . '.' . strtolower( $this->type );
+	}
+
+	public function setCacheVersion($string)
+	{
+		if ( $string !== '' )
+		{
+			$this->cacheVersion = '?v=' . $string;
+		}
+		return $this;
 	}
 
 	/**
@@ -838,7 +943,8 @@ class Common_Object {
 	 * vlozenych URL adres
 	 * @return string
 	 */
-	public function getUniqueID() {
+	public function getUniqueID()
+	{
 		return md5( implode( '', $this->url ) );
 	}
 

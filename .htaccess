@@ -22,6 +22,20 @@ RewriteRule ^domains/[^/]+/(.+[^/])$ /$1/ [R]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^subdom/[^/]+/(.+[^/])$ /$1/ [R]
 
+# CACHING FILES
+#Set caching on image files for 11 months
+#<filesMatch "\.(ico|gif|jpg|png)$">
+#  ExpiresActive On
+#  ExpiresDefault "access plus 1 month"
+#  Header append Cache-Control "public"
+#</filesMatch>
+
+#<filesMatch "\.(css|js)$">
+#  ExpiresActive On
+#  ExpiresDefault "access plus 1 week"
+#  Header append Cache-Control "public"
+#</filesMatch>
+
  RewriteEngine On
     #Removes access to the system folder by users.
     #Additionally this will allow you to create a System.php controller,

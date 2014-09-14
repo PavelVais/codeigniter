@@ -65,6 +65,14 @@ $config['header']['title-postfix'] = 'My CI site';  //= Text, který se přidá 
 $config['header']['cache-css-prefix'] = 'cacheminifed_';
 $config['header']['cache-js-prefix'] = 'cache/cacheminifed_';
 
+/**
+ * Verze CSS a JS souboru.
+ * Paklize je vyplneno, pripoji se to k adrese - tim padem to prinuti prohlizece
+ * aktaulizovat cache (paklize je pres htaccess zapnuta)
+ * Pozor: Pouziva se jen pri produkcnim modu!
+ */
+$config['header']['cache-css-version'] = '';
+$config['header']['cache-js-version'] = '';
 
 /*
   |--------------------------------------------------------------------------
